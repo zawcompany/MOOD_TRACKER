@@ -1,16 +1,93 @@
-// lib/page/dashboard/presentation/screens/dashboard_screen.dart
-
 import 'package:flutter/material.dart';
-// PERBAIKAN: Path import relatif ke widgets
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// Import widgets
 import '../widgets/weekly_mood_row.dart';
 import '../widgets/quote_card.dart'; 
+// Import Detail Mood Screen
+import 'detail_mood_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+// Diubah menjadi StatefulWidget untuk mengelola BottomNavigationBar
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  // State untuk Bottom Navbar (0=Home/Dashboard, 1=Profile)
+  int _selectedIndex = 0; 
+  
+  // Daftar halaman untuk Bottom Navbar
+  static final List<Widget> _pages = <Widget>[
+    // Halaman 0: Konten Dashboard
+    _DashboardContent(),
+    // Halaman 1: Placeholder Profile (Ubah Profile & Logout)
+    const Center(child: Text("Halaman Profil (Ubah Profile & Logout)", style: TextStyle(fontSize: 18))),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: EdgeInsets.fromLTRB(24, 60, 24, 24),
+      body: _pages[_selectedIndex],
+      
+      // Tombol 'Lihat Mood' sebagai FloatingActionButton
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 10.0), 
+        child: ElevatedButton(
+          onPressed: () {
+            // Navigasi ke halaman Detail Mood
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DetailMoodScreen()),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+            minimumSize: const Size(180, 50), // Ukuran tombol
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+            elevation: 8,
+          ),
+          child: const Text('Lihat Mood', style: TextStyle(color: Colors.white)),
+        ),
+      ),
+
+      // Bottom Navigation Bar
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.black, // Warna ikon aktif
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
+        showSelectedLabels: false, 
+        showUnselectedLabels: false,
+      ),
+    );
+  }
+}
+
+// Widget Konten Dashboard (Dipisahkan dari DashboardScreen)
+class _DashboardContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+     return Container(
+        padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
         // Tambahkan gradien sesuai desain Anda
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -22,38 +99,25 @@ class DashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Hey, iLa', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-            SizedBox(height: 30),
+            const Text('Hey, iLa', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 30),
 
             // Weekly Mood
-            Text('Your Weekly Mood', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-            SizedBox(height: 16),
-            Center(child: WeeklyMoodRow()), 
-            SizedBox(height: 40),
+            const Text('Your Weekly Mood', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 16),
+            const Center(child: WeeklyMoodRow()), 
+            const SizedBox(height: 40),
 
             // Quote of the Day
-            Text('Quote of the Day', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-            SizedBox(height: 16),
+            const Text('Quote of the Day', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 16),
             QuoteCard(), 
-            Spacer(),
-
-            // Lihat Mood Button
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Navigasi ke Halaman Detail Mood
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                ),
-                child: Text('Lihat Mood', style: TextStyle(color: Colors.white)),
-              ),
-            ),
+            const Spacer(),
+            
+            // Placeholder untuk jarak ke Floating Button / BottomNavbar
+            const SizedBox(height: 60), 
           ],
         ),
-      ),
-    );
+      );
   }
 }

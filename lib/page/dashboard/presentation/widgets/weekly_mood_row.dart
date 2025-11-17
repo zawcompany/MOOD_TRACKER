@@ -1,24 +1,26 @@
-// lib/page/dashboard/presentation/widgets/weekly_mood_row.dart
-
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-// PERBAIKAN: Path import relatif ke DashboardProvider (naik 1 tingkat, lalu turun ke provider)
+import 'package:provider/provider.dart'; 
+// FIX: Path import relatif ke DashboardProvider
 import '../provider/dashboard_provider.dart'; 
+// FIX: Path import relatif ke MoodModel
+import '../../domain/mood_model.dart'; 
 
 class WeeklyMoodRow extends StatelessWidget {
+  const WeeklyMoodRow({super.key}); 
+  
   @override
   Widget build(BuildContext context) {
-    // Menggunakan Consumer untuk 'mendengarkan' perubahan di DashboardProvider
+    // Consumer mendengarkan perubahan pada DashboardProvider
     return Consumer<DashboardProvider>(
       builder: (context, dashboardProvider, child) {
-        final weeklyMoods = dashboardProvider.weeklyMoods; // Data Reaktif
+        final weeklyMoods = dashboardProvider.weeklyMoods; 
         
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: weeklyMoods.map((mood) => MoodIcon(
             day: mood.day,
             iconAssetPath: mood.iconAssetPath, 
-            moodType: mood.moodType,
+            key: ValueKey(mood.day), 
           )).toList(),
         );
       },
@@ -29,21 +31,27 @@ class WeeklyMoodRow extends StatelessWidget {
 class MoodIcon extends StatelessWidget {
   final String day;
   final String iconAssetPath;
-  final String moodType;
-
-  const MoodIcon({required this.day, required this.iconAssetPath, required this.moodType});
+  
+  const MoodIcon({required this.day, required this.iconAssetPath, super.key}); 
 
   @override
   Widget build(BuildContext context) {
-    // Pastikan Anda sudah menambahkan gambar karakter di pubspec.yaml dan folder assets/
     return Column(
       children: [
+        // Menggunakan Image.asset untuk karakter mood
         ClipRRect(
           borderRadius: BorderRadius.circular(15.0),
-          child: Image.asset(iconAssetPath, height: 40, width: 40, fit: BoxFit.cover), 
+          child: Image.asset(iconAssetPath, height: 40, width: 40, fit: BoxFit.cover,
+            // Fallback jika file gambar tidak ditemukan
+            errorBuilder: (context, error, stackTrace) => Container(
+              height: 40, width: 40, 
+              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(15)),
+              child: const Icon(Icons.mood, color: Colors.purple),
+            ),
+          ), 
         ),
-        SizedBox(height: 4),
-        Text(day, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 4),
+        Text(day, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
       ],
     );
   }
