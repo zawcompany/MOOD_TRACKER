@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'sign_in_page.dart'; // pastikan file ini ada di lib/sign_in_page.dart
+import 'page/sign_in_page.dart'; // pastikan file ini ada di lib/sign_in_page.dart
 
 void main() {
   runApp(const MoodTrackerApp());
