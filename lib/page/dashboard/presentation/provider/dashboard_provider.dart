@@ -1,8 +1,7 @@
 // lib/features/dashboard/presentation/provider/dashboard_provider.dart
 
 import 'package:flutter/material.dart';
-import 'package:lib/page/dashboard/domain/mood_model.dart';
-// Ganti MOOD_TRACKER dengan nama project anda jika berbeda
+import '../../domain/mood_model.dart';
 
 class DashboardProvider extends ChangeNotifier {
   // --- STATE DATA ---

@@ -38,7 +38,7 @@ class MoodTrackerApp extends StatelessWidget {
           useMaterial3: true,
         ),
         // Pastikan WelcomePage Anda sudah diimport
-        home: const WelcomePage(),
+        home: DashboardScreen(),
       ),
     );
   }
