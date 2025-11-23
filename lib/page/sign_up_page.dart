@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'sign_in_page.dart';
+import 'choose_mood.dart';
+
 
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});
@@ -29,7 +31,7 @@ class SignUpPage extends StatelessWidget {
               children: [
                 Center(
                   child: Image.asset(
-                    'assets/images/manyemoji.png',
+                    'assets/images/welcome_emoji.png',
                     height: size.height * 0.2, // responsif
                   ),
                 ),
@@ -78,7 +80,14 @@ class SignUpPage extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 15),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ChooseMoodPage(userName: "Ila"),
+                        ),
+                      );
+                    },
                     child: const Text(
                       "Sign Up",
                       style: TextStyle(fontSize: 16),

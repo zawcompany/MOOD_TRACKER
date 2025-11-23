@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'sign_up_page.dart';
+import 'choose_mood.dart';
+
 
 class SignInPage extends StatelessWidget {
   const SignInPage({super.key});
@@ -32,7 +34,7 @@ class SignInPage extends StatelessWidget {
               children: [
                 Center(
                   child: Image.asset(
-                    'assets/images/manyemoji.png',
+                    'assets/images/welcome_emoji.png',
                     height: height * 0.25,
                   ),
                 ),
@@ -61,7 +63,14 @@ class SignInPage extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ChooseMoodPage(userName: "Ila")
+),
+                      );
+                    },
+
                     child: const Text(
                       "Forget Password?",
                       style: TextStyle(color: Color(0xFF8C64D8)),
