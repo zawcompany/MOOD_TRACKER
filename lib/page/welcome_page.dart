@@ -30,7 +30,7 @@ class WelcomePage extends StatelessWidget {
                 children: [
                   // 🧠 Gambar responsif
                   Image.asset(
-                    'assets/images/welcome_emoji.png',
+                    'assets/images/moods.png',
                     height: height * 0.35, // proporsional ke tinggi layar
                   ),
                   SizedBox(height: height * 0.05),
