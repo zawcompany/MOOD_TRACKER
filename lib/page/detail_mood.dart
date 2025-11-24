@@ -21,12 +21,20 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
   final Set<String> _selectedEmotions = {};
   final TextEditingController _noteController = TextEditingController();
 
-  // emotion options per mood label (sesuaikan bila ingin beda teks)
+  // emotion options per mood label
   Map<String, List<String>> options = {
     "Bad": ["Anxious", "Frustrated", "Gloomy", "Irritable", "Lonely"],
     "Fine": ["Calm", "Content", "Neutral", "Relaxed", "Stable"],
     "Wonderful": ["Excited", "Joyful", "Enthusiastic", "Beloved", "Euphoric"],
   };
+
+  Color? overrideBgColor; // BG khusus untuk detail mood
+
+  @override
+  void initState() {
+    super.initState();
+    overrideBgColor = widget.bgColor.withOpacity(0.25); // BG ringan
+  }
 
   @override
   void dispose() {
@@ -39,19 +47,17 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
     final List<String> emotionOptions =
         options[widget.label] ?? <String>["Neutral"];
 
-    // UI uses a light background like the screenshot:
     return Scaffold(
-      backgroundColor: widget.bgColor,
+      backgroundColor: overrideBgColor, // Background detail TIDAK ikut choose mood
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Column(
             children: [
-              // top bar (back + close)
+              // TOP BAR
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // back
                   InkWell(
                     onTap: () => Navigator.pop(context),
                     borderRadius: BorderRadius.circular(20),
@@ -60,11 +66,7 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
                       child: Icon(Icons.arrow_back, size: 26),
                     ),
                   ),
-
-                  // empty center placeholder so layout mirrors screenshot
                   const SizedBox(width: 8),
-
-                  // close icon on right
                   InkWell(
                     onTap: () => Navigator.pop(context),
                     borderRadius: BorderRadius.circular(20),
@@ -78,12 +80,11 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
               const SizedBox(height: 10),
 
-              // emoji image
+              // Monster Image
               Image.asset(widget.imagePath, height: 120),
 
               const SizedBox(height: 12),
 
-              // title
               Text(
                 "What best describes\nthis mood?",
                 textAlign: TextAlign.center,
@@ -102,45 +103,60 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
               const SizedBox(height: 14),
 
-              // chips
-              Align(
-                alignment: Alignment.center,
-                child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: emotionOptions.map((e) {
-                    final selected = _selectedEmotions.contains(e);
-                    return ChoiceChip(
-                      label: Text(
-                        e,
-                        style: TextStyle(
-                          color: selected ? Colors.white : Colors.black87,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                        ),
+              // ⚡ EMOTION CHIPS (warna mengikuti mood)
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: emotionOptions.map((e) {
+                  final selected = _selectedEmotions.contains(e);
+
+                  return ChoiceChip(
+                    label: Text(
+                      e,
+                      style: TextStyle(
+                        color: selected ? Colors.white : Colors.black87,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.w500,
                       ),
-                      selected: selected,
-                      onSelected: (val) {
-                        setState(() {
-                          if (val) {
-                            _selectedEmotions.add(e);
-                          } else {
-                            _selectedEmotions.remove(e);
+                    ),
+                    selected: selected,
+
+                    onSelected: (val) {
+                      setState(() {
+                        if (val) {
+                          _selectedEmotions.add(e);
+
+                          // ubah background agar lebih lembut saat memilih
+                          overrideBgColor = widget.bgColor.withOpacity(0.18);
+                        } else {
+                          _selectedEmotions.remove(e);
+                          if (_selectedEmotions.isEmpty) {
+                            overrideBgColor = widget.bgColor.withOpacity(0.25);
                           }
-                        });
-                      },
-                      backgroundColor: Colors.white,
-                      selectedColor: Colors.black87,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                    );
-                  }).toList(),
-                ),
+                        }
+                      });
+                    },
+
+                    // WARNA FOLLOW MOOD
+                    backgroundColor: Colors.white,
+                    selectedColor: widget.bgColor,
+
+                    // HOVER / PRESSED EFFECT
+                    pressElevation: 0,
+                    shadowColor: widget.bgColor.withOpacity(0.25),
+                    selectedShadowColor: widget.bgColor.withOpacity(0.4),
+
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  );
+                }).toList(),
               ),
 
               const SizedBox(height: 18),
 
-              // note label
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -151,14 +167,14 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
               const SizedBox(height: 8),
 
-              // note textfield (white card)
               Container(
                 height: 120,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: TextField(
                   controller: _noteController,
                   maxLines: null,
@@ -174,7 +190,7 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
               const Spacer(),
 
-              // Save button
+              // SAVE BUTTON
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -186,7 +202,8 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text("Save", style: TextStyle(color: Colors.white)),
+                  child:
+                      const Text("Save", style: TextStyle(color: Colors.white)),
                 ),
               ),
             ],
@@ -197,7 +214,6 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
   }
 
   void _onSave() {
-    // Build a result payload to send back to previous screen (if needed)
     final Map<String, dynamic> result = {
       "mood": widget.label,
       "emotions": _selectedEmotions.toList(),
@@ -205,7 +221,6 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
       "image": widget.imagePath,
     };
 
-    // For now: return result to previous screen and show Snackbar
     Navigator.pop(context, result);
   }
 }
