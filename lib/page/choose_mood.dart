@@ -19,17 +19,17 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
     final List<Map<String, Object>> moods = [
       {
         "label": "Bad",
-        "color": const Color.fromRGBO(255, 230, 230, 1),
+        "color": Colors.redAccent,
         "image": "assets/images/bad.png",
       },
       {
         "label": "Fine",
-        "color": const Color.fromRGBO(230, 255, 253, 1),
+        "color": Colors.teal,
         "image": "assets/images/fine.png",
       },
       {
         "label": "Wonderful",
-        "color": const Color.fromRGBO(255, 250, 230, 1),
+        "color": Colors.amber,
         "image": "assets/images/wonderful.png",
       },
     ];
