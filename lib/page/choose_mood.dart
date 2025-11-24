@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'detail_mood.dart';
 
 class ChooseMoodPage extends StatefulWidget {
-  final String userName; 
+  final String userName;
 
   const ChooseMoodPage({super.key, required this.userName});
 
@@ -118,7 +119,16 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    print("Selected mood: ${mood['label']}");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailMoodPage(
+                          label: mood['label'] as String,
+                          bgColor: mood['color'] as Color,
+                          imagePath: mood['image'] as String,
+                        ),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
