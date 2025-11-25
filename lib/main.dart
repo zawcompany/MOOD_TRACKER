@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mood_tracker/page/profile_page.dart';
 import 'package:provider/provider.dart';
 
 // Import Dashboard Provider & Screen
@@ -36,7 +37,7 @@ class MoodTrackerApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Mood Tracker',
         theme: ThemeData(
-          fontFamily: 'Poppins',
+          fontFamily: 'Quicksand',
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF8C64D8),
           ),
@@ -46,7 +47,7 @@ class MoodTrackerApp extends StatelessWidget {
         // NOTE:
       // Saat testing → DashboardScreen
         // Saat deploy → WelcomePage
-        home: const WelcomePage(),
+        home: const ProfilePage(),
         // Kalau mau ganti ke WelcomePage:
         // home: const WelcomePage(),
       ),
