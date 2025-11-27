@@ -32,5 +32,11 @@ flutter:
   assets:
     - assets/images/
 
+fonts:
+    - family: Quicksand
+      fonts:
+        - asset: assets/fonts/Quicksand_Bold.otf
+        - asset: assets/fonts/Quicksand_Book.otf
+        - asset: assets/fonts/Quicksand_Light.otf
 
-
+image_picker: ^1.0.7

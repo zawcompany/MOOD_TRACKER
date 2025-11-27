@@ -103,7 +103,7 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
               const SizedBox(height: 14),
 
-              // ⚡ EMOTION CHIPS (warna mengikuti mood)
+              // EMOTION CHIPS (warna mengikuti mood)
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
