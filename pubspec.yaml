@@ -25,9 +25,18 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  font_awesome_flutter: ^10.7.0
 
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/manyemoji.png
+    - assets/images/
 
+fonts:
+    - family: Quicksand
+      fonts:
+        - asset: assets/fonts/Quicksand_Bold.otf
+        - asset: assets/fonts/Quicksand_Book.otf
+        - asset: assets/fonts/Quicksand_Light.otf
+
+image_picker: ^1.0.7
