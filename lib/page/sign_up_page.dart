@@ -1,10 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; 
+import '../../services/auth_service.dart'; 
 import 'sign_in_page.dart';
 import 'choose_mood.dart';
 
-
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
+
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  
+  final AuthService _authService = AuthService(); // Inisiasi Service
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _handleSignUp() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua field harus diisi.')),
+      );
+      return;
+    }
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password tidak cocok.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _authService.registerUser(email, password, name);
+      
+      final User? user = FirebaseAuth.instance.currentUser;
+      String userName = user?.displayName ?? name; 
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ChooseMoodPage(userName: userName), 
+        ),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', 'Error Registrasi: ')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,23 +122,28 @@ class SignUpPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 25),
 
-                const _CustomTextField(
+                _CustomTextField(
                   label: 'Username',
                   icon: Icons.person_outline,
+                  controller: _nameController, // Hubungkan controller
                 ),
-                const _CustomTextField(
+                _CustomTextField(
                   label: 'Email',
                   icon: Icons.email_outlined,
+                  controller: _emailController, // Hubungkan controller
+                  keyboardType: TextInputType.emailAddress,
                 ),
-                const _CustomTextField(
+                _CustomTextField(
                   label: 'Password',
                   icon: Icons.lock_outline,
                   obscureText: true,
+                  controller: _passwordController, // Hubungkan controller
                 ),
-                const _CustomTextField(
+                _CustomTextField(
                   label: 'Confirm Password',
                   icon: Icons.lock_person_outlined,
                   obscureText: true,
+                  controller: _confirmPasswordController, // Hubungkan controller
                 ),
                 const SizedBox(height: 20),
 
@@ -79,19 +156,22 @@ class SignUpPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(25),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 15),
+                      foregroundColor: Colors.white, // Menghilangkan warna ungu di text
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ChooseMoodPage(userName: "Ila"),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      "Sign Up",
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    onPressed: _isLoading ? null : _handleSignUp,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20, 
+                            width: 20, 
+                            child: CircularProgressIndicator(
+                              color: Colors.white, 
+                              strokeWidth: 2
+                            )
+                          )
+                        : const Text(
+                            "Sign Up",
+                            style: TextStyle(fontSize: 16),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -131,11 +211,15 @@ class _CustomTextField extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool obscureText;
+  final TextEditingController? controller; 
+  final TextInputType keyboardType; 
 
   const _CustomTextField({
     required this.label,
     required this.icon,
     this.obscureText = false,
+    this.controller, 
+    this.keyboardType = TextInputType.text,
   });
 
   @override
@@ -154,11 +238,14 @@ class _CustomTextField extends StatelessWidget {
         ],
       ),
       child: TextField(
+        controller: controller, 
+        keyboardType: keyboardType, 
         obscureText: obscureText,
         decoration: InputDecoration(
           hintText: label,
           border: InputBorder.none,
           prefixIcon: Icon(icon, color: Colors.grey),
+          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10), 
         ),
       ),
     );
