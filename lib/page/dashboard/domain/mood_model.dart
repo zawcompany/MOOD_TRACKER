@@ -1,13 +1,30 @@
-// lib/page/dashboard/domain/mood_model.dart
-
 class MoodModel {
-  final String day; // Mon, Tue, etc.
-  final String moodType; // Wonderful, Sad, etc.
-  final String iconAssetPath; // Path ke gambar karakter di assets/
+  final String id;
+  final DateTime date;
+  final String mood; 
+  final String note;
 
   MoodModel({
-    required this.day,
-    required this.moodType,
-    required this.iconAssetPath,
+    required this.id,
+    required this.date,
+    required this.mood,
+    required this.note,
   });
+
+  factory MoodModel.fromMap(String id, Map<String, dynamic> data) {
+    return MoodModel(
+      id: id,
+      date: DateTime.parse(data['date']),
+      mood: data['mood'],
+      note: data['note'] ?? "",
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      "date": date.toIso8601String(),
+      "mood": mood,
+      "note": note,
+    };
+  }
 }
