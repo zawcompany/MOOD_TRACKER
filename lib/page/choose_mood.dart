@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// import provider
+import 'package:mood_tracker/page/dashboard/presentation/provider/dashboard_provider.dart';
+
+// import halaman detail
 import 'detail_mood.dart';
 
 class ChooseMoodPage extends StatefulWidget {
@@ -118,8 +124,8 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => DetailMoodPage(
@@ -129,6 +135,14 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
                         ),
                       ),
                     );
+                    if (result != null) {
+                      final provider =
+                          Provider.of<DashboardProvider>(context, listen: false);
+
+                      provider.setMood(result);
+
+                      Navigator.pushNamed(context, "/dashboard");
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'edit_profile_page.dart';
 import 'change_password_page.dart';
 import 'logout_dialog.dart';
+import 'package:mood_tracker/page/widgets/custom_navbar.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -9,7 +10,14 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: _bottomNav(),
+      // Bottom Navigation
+      bottomNavigationBar: CustomNavbar(
+        currentIndex: 1,
+        onTap: (i) {
+          if (i == 1) return; 
+          Navigator.pushNamed(context, "/dashboard");
+        },
+      ),
       body: Container(
         decoration: _bgGradient(),
         child: SafeArea(
@@ -120,23 +128,6 @@ class ProfilePage extends StatelessWidget {
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-      ),
-    );
-  }
-
-  /// Bottom Navigation
-  Widget _bottomNav() {
-    return Container(
-      height: 65,
-      decoration: const BoxDecoration(color: Colors.white, boxShadow: [
-        BoxShadow(color: Colors.black12, blurRadius: 6)
-      ]),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: const [
-          Icon(Icons.home_outlined, size: 30),
-          Icon(Icons.person, size: 30),
-        ],
       ),
     );
   }

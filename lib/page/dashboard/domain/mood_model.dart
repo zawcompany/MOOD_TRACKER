@@ -1,30 +1,15 @@
 class MoodModel {
-  final String id;
   final DateTime date;
-  final String mood; 
+  final String mood;
+  final List<String> emotions;
   final String note;
+  final String imagePath;
 
   MoodModel({
-    required this.id,
     required this.date,
     required this.mood,
+    required this.emotions,
     required this.note,
+    required this.imagePath,
   });
-
-  factory MoodModel.fromMap(String id, Map<String, dynamic> data) {
-    return MoodModel(
-      id: id,
-      date: DateTime.parse(data['date']),
-      mood: data['mood'],
-      note: data['note'] ?? "",
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      "date": date.toIso8601String(),
-      "mood": mood,
-      "note": note,
-    };
-  }
 }

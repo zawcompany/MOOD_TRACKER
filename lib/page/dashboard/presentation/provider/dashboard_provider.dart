@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/mood_model.dart';
 
 class DashboardProvider extends ChangeNotifier {
-
-  /// Dummy untuk sekarang (nanti tinggal ganti pakai Firestore)
+  /// --- BAGIAN LAMA (TIDAK DIHAPUS) ---
   List<MoodModel> weeklyMood = [];
   List<MoodModel> monthlyMood = [];
 
@@ -47,5 +46,26 @@ class DashboardProvider extends ChangeNotifier {
     } catch (e) {
       return null;
     }
+  }
+
+  /// --- BAGIAN BARU UNTUK SIMPAN MOOD HARI INI ---  
+  String? lastMood;
+  List<String>? lastEmotions;
+  String? lastNote;
+  String? lastImage;
+
+  void setMood(Map<String, dynamic> data) {
+    final mood = MoodModel(
+      date: DateTime.now(),
+      mood: data["mood"],
+      emotions: List<String>.from(data["emotions"]),
+      note: data["note"],
+      imagePath: data["image"],
+    );
+
+    weeklyMood.add(mood);
+    monthlyMood.add(mood);
+
+    notifyListeners();
   }
 }

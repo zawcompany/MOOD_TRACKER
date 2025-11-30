@@ -8,22 +8,36 @@ class WeeklyMoodRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Map<int, MoodModel?> byDay = {};
+
+    for (int i = 1; i <= 7; i++) {
+      byDay[i] = null;
+    }
+
+    for (final m in moods) {
+      byDay[m.date.weekday] = m;
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: moods.map((mood) {
+      children: List.generate(7, (i) {
+        final day = i + 1;
+        final mood = byDay[day];
+
         return Column(
           children: [
             CircleAvatar(
               radius: 22,
-              child: Text(mood.mood),
+              backgroundColor: Colors.grey.shade300,
+              child: mood == null
+                  ? const Icon(Icons.remove, color: Colors.grey)
+                  : Text(mood.mood),
             ),
             const SizedBox(height: 4),
-            Text(
-              ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][mood.date.weekday - 1]
-            ),
+            Text(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]),
           ],
         );
-      }).toList(),
+      }),
     );
   }
 }
