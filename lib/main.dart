@@ -14,8 +14,18 @@ import 'page/profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  runApp(const MoodTrackerApp());
+  
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    
+    runApp(const MoodTrackerApp());
+    
+  } catch (e) {
+    print("Error initializing Firebase: $e");
+    runApp(ErrorApp(errorMessage: e.toString()));
+  }
 }
 
 class MoodTrackerApp extends StatelessWidget {
@@ -52,3 +62,35 @@ class MoodTrackerApp extends StatelessWidget {
     );
   }
 }
+class ErrorApp extends StatelessWidget {
+  final String errorMessage;
+
+  const ErrorApp({super.key, required this.errorMessage});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Terjadi Kesalahan Fatal!",
+                style: TextStyle(color: Colors.red, fontSize: 24),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  "Gagal menghubungkan ke Firebase. Detail: $errorMessage",
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
