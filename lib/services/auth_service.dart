@@ -8,22 +8,22 @@ class ProfileData {
   final String? gender;
   final DateTime? birthday;
   final String? username;
-
+  
   ProfileData({
-    required this.fullName,
-    required this.email,
-    this.phone,
-    this.gender,
-    this.birthday,
-    this.username,
+    required this.fullName, 
+    required this.email, 
+    this.phone, 
+    this.gender, 
+    this.birthday, 
+    this.username
   });
 }
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseAuth get _auth => FirebaseAuth.instance;
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
-  // --- 1. Register User ---
+  // 1. Register User
   Future<void> registerUser(String email, String password, String name) async {
     try {
       UserCredential userCredential =
@@ -59,7 +59,7 @@ class AuthService {
     }
   }
 
-  // --- 2. Login User ---
+  // 2. Login User
   Future<void> signInUser(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(
@@ -81,12 +81,12 @@ class AuthService {
     }
   }
 
-  // --- 3. Logout ---
+  // 3. Logout
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // --- 4. Update Data User ---
+  // 4. Update Data User
   Future<void> updateUserData({String? name, String? email}) async {
     final user = _auth.currentUser;
 
@@ -113,7 +113,7 @@ class AuthService {
     await user.reload();
   }
 
-  // --- 5. Fetch Profile Data ---
+  // 5. Fetch Profile Data
   Future<ProfileData> fetchProfileData() async {
     final user = _auth.currentUser;
     if (user == null) throw Exception("User not logged in.");
