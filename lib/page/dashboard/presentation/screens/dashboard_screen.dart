@@ -1,34 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../../services/mood_service.dart';
 import '../provider/dashboard_provider.dart';
 import '../widgets/weekly_mood_row.dart';
 import '../widgets/quote_card.dart';
-import 'package:mood_tracker/page/widgets/custom_navbar.dart';
-
-// Import Choose Mood (jika bagianmu tidak handle input mood harian,
-// kamu bisa hapus semua terkait choose mood)
 import 'package:mood_tracker/page/choose_mood.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  DashboardScreen({super.key});
+
+  final MoodService _moodService = MoodService();
+
+  String _getUserName() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.displayName ?? 'Pengguna';
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DashboardProvider>();
-
-    const userName = "iLa"; // TODO: ganti dengan data user
+    final userName = _getUserName();
 
     return Scaffold(
-      bottomNavigationBar: CustomNavbar(
-        currentIndex: 0,
-        onTap: (i) {
-          if (i == 1) {
-            Navigator.pushNamed(context, "/profile");
-          }
-        },
-      ),
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -55,7 +50,31 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-              WeeklyMoodRow(moods: provider.weeklyMood),
+              StreamBuilder<List<MoodEntryModel>>(
+                stream: _moodService.getWeeklyMoodStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error memuat data: ${snapshot.error}'),
+                    );
+                  }
+
+                  final moods = snapshot.data ?? [];
+
+                  if (moods.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Text('Belum ada entri mood dalam 7 hari terakhir.'),
+                    );
+                  }
+
+                  return WeeklyMoodRow(moods: moods);
+                },
+              ),
 
               const SizedBox(height: 30),
 
@@ -75,7 +94,7 @@ class DashboardScreen extends StatelessWidget {
 
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, "/detailMood");
+                  Navigator.pushNamed(context, "/detailMoodScreen");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8C64D8),
@@ -83,7 +102,8 @@ class DashboardScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 24, vertical: 14),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text("Lihat Mood"),
               ),

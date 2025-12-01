@@ -1,19 +1,37 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+class ProfileData {
+  final String fullName;
+  final String email;
+  final String? phone;
+  final String? gender;
+  final DateTime? birthday;
+  final String? username;
+
+  ProfileData({
+    required this.fullName,
+    required this.email,
+    this.phone,
+    this.gender,
+    this.birthday,
+    this.username,
+  });
+}
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // --- 1. Fungsi Registrasi (Sign Up) ---
+  // --- 1. Register User ---
   Future<void> registerUser(String email, String password, String name) async {
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Simpan data profil ke Firestore
       if (userCredential.user != null) {
         String uid = userCredential.user!.uid;
 
@@ -23,6 +41,7 @@ class AuthService {
           'name': name,
           'createdAt': Timestamp.now(),
         });
+
         await userCredential.user!.updateDisplayName(name);
       }
     } on FirebaseAuthException catch (e) {
@@ -40,7 +59,7 @@ class AuthService {
     }
   }
 
-  // --- 2. Fungsi Login (Sign In) ---
+  // --- 2. Login User ---
   Future<void> signInUser(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(
@@ -61,9 +80,56 @@ class AuthService {
       throw Exception('Terjadi error: $e');
     }
   }
-  
-  // --- 3. Fungsi Logout (Berguna di Profile Page) ---
+
+  // --- 3. Logout ---
   Future<void> signOut() async {
     await _auth.signOut();
+  }
+
+  // --- 4. Update Data User ---
+  Future<void> updateUserData({String? name, String? email}) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception("User is not logged in.");
+    }
+
+    if (name != null && name.isNotEmpty) {
+      await user.updateDisplayName(name);
+
+      await _firestore.collection('users').doc(user.uid).update({
+        'name': name,
+      });
+    }
+
+    if (email != null && email.isNotEmpty && email != user.email) {
+      await user.updateEmail(email);
+
+      await _firestore.collection('users').doc(user.uid).update({
+        'email': email,
+      });
+    }
+
+    await user.reload();
+  }
+
+  // --- 5. Fetch Profile Data ---
+  Future<ProfileData> fetchProfileData() async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception("User not logged in.");
+
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    final data = doc.data();
+
+    final birthday = (data?['birthday'] as Timestamp?)?.toDate();
+
+    return ProfileData(
+      fullName: user.displayName ?? 'N/A',
+      email: user.email ?? 'N/A',
+      username: data?['username'],
+      phone: data?['phone'],
+      gender: data?['gender'],
+      birthday: birthday,
+    );
   }
 }

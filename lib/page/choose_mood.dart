@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-// import provider
 import 'package:mood_tracker/page/dashboard/presentation/provider/dashboard_provider.dart';
 
-// import halaman detail
 import 'detail_mood.dart';
 
 class ChooseMoodPage extends StatefulWidget {
@@ -17,11 +15,10 @@ class ChooseMoodPage extends StatefulWidget {
 }
 
 class _ChooseMoodPageState extends State<ChooseMoodPage> {
-  double sliderValue = 1; // default: Fine
+  double sliderValue = 0; 
 
   @override
   Widget build(BuildContext context) {
-    // daftar mood
     final List<Map<String, Object>> moods = [
       {
         "label": "Bad",
@@ -50,7 +47,6 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // tombol X
               Align(
                 alignment: Alignment.topRight,
                 child: Icon(Icons.close, size: 28, color: Colors.grey[700]),
@@ -58,7 +54,6 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
 
               const SizedBox(height: 20),
 
-              // judul
               Text(
                 "Hey, ${widget.userName}! How are you\nfeeling right now?",
                 textAlign: TextAlign.center,
@@ -70,7 +65,6 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
 
               const SizedBox(height: 40),
 
-              // emoji
               Image.asset(
                 mood["image"] as String,
                 height: 150,
@@ -78,7 +72,6 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
 
               const SizedBox(height: 20),
 
-              // label (Bad, Fine, Wonderful)
               Text(
                 mood["label"] as String,
                 style: TextStyle(
@@ -90,7 +83,6 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
 
               const SizedBox(height: 20),
 
-              // slider
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: mood["color"] as Color,
@@ -120,7 +112,6 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
 
               const Spacer(),
 
-              // tombol continue
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

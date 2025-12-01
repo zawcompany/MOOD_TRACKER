@@ -28,14 +28,12 @@ class WelcomePage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // 🧠 Gambar responsif
                   Image.asset(
                     'assets/images/welcome_emoji.png',
-                    height: height * 0.35, // proporsional ke tinggi layar
+                    height: height * 0.35, 
                   ),
                   SizedBox(height: height * 0.05),
 
-                  // ✨ Teks utama
                   Text(
                     "Not Sure About Your Mood?",
                     style: TextStyle(
@@ -48,7 +46,6 @@ class WelcomePage extends StatelessWidget {
 
                   SizedBox(height: height * 0.025),
 
-                  // 🖤 Tombol navigasi
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,

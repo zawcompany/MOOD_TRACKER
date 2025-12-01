@@ -104,7 +104,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 Center(
                   child: Image.asset(
                     'assets/images/welcome_emoji.png',
-                    height: size.height * 0.2, // responsif
+                    height: size.height * 0.2, 
                   ),
                 ),
                 const SizedBox(height: 25),
@@ -125,25 +125,25 @@ class _SignUpPageState extends State<SignUpPage> {
                 _CustomTextField(
                   label: 'Username',
                   icon: Icons.person_outline,
-                  controller: _nameController, // Hubungkan controller
+                  controller: _nameController, 
                 ),
                 _CustomTextField(
                   label: 'Email',
                   icon: Icons.email_outlined,
-                  controller: _emailController, // Hubungkan controller
+                  controller: _emailController, 
                   keyboardType: TextInputType.emailAddress,
                 ),
                 _CustomTextField(
                   label: 'Password',
                   icon: Icons.lock_outline,
                   obscureText: true,
-                  controller: _passwordController, // Hubungkan controller
+                  controller: _passwordController, 
                 ),
                 _CustomTextField(
                   label: 'Confirm Password',
                   icon: Icons.lock_person_outlined,
                   obscureText: true,
-                  controller: _confirmPasswordController, // Hubungkan controller
+                  controller: _confirmPasswordController,
                 ),
                 const SizedBox(height: 20),
 
@@ -156,7 +156,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         borderRadius: BorderRadius.circular(25),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 15),
-                      foregroundColor: Colors.white, // Menghilangkan warna ungu di text
+                      foregroundColor: Colors.white,
                     ),
                     onPressed: _isLoading ? null : _handleSignUp,
                     child: _isLoading

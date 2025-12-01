@@ -141,7 +141,6 @@ class _SignInPageState extends State<SignInPage> {
 
                 SizedBox(height: height * 0.01),
 
-                // 🟣 Sign In Button
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8C64D8),
@@ -152,7 +151,7 @@ class _SignInPageState extends State<SignInPage> {
                     shadowColor: Colors.purple.withOpacity(0.3),
                     elevation: 4,
                   ),
-                  // Panggil fungsi _handleSignIn
+
                   onPressed: _isLoading ? null : _handleSignIn,
                   child: _isLoading
                       ? const SizedBox(
@@ -171,7 +170,6 @@ class _SignInPageState extends State<SignInPage> {
 
                 SizedBox(height: height * 0.02),
 
-                // 🩵 Sign Up Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

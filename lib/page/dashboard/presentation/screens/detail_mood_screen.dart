@@ -1,48 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../provider/dashboard_provider.dart';
-import '../../domain/mood_model.dart';
+import 'package:intl/intl.dart';
+import '../../../../services/mood_service.dart';
 
-class DetailMoodScreen extends StatelessWidget {
+class DetailMoodScreen extends StatefulWidget {
   const DetailMoodScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final p = context.watch<DashboardProvider>();
+  State<DetailMoodScreen> createState() => _DetailMoodScreenState();
+}
 
+class _DetailMoodScreenState extends State<DetailMoodScreen> {
+  final MoodService _moodService = MoodService();
+  DateTime _selectedDay = DateTime.now();
+  DateTime _focusedDay = DateTime.now();
+
+  int get _selectedMonth => _focusedDay.month;
+  int get _selectedYear => _focusedDay.year;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Mood History")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _monthSelector(p),
+            _monthSelector(),
             const SizedBox(height: 12),
-            SizedBox(height: 260, child: _calendar(p)), // kalender lebih kecil
+            SizedBox(height: 260, child: _calendar()),
             const SizedBox(height: 20),
-            Expanded(child: _noteBox(p)), // scrollable note
+            Expanded(child: _noteBox()),
           ],
         ),
       ),
     );
   }
 
-  // ================= MONTH SELECTOR =================
-
-  Widget _monthSelector(DashboardProvider p) {
+  Widget _monthSelector() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         IconButton(
-            onPressed: () => p.changeMonth(p.selectedMonth - 1),
-            icon: const Icon(Icons.chevron_left)),
+          onPressed: () {
+            setState(() {
+              _focusedDay = DateTime(
+                _focusedDay.year,
+                _focusedDay.month - 1,
+                _focusedDay.day,
+              );
+            });
+          },
+          icon: const Icon(Icons.chevron_left),
+        ),
         Text(
-          "${_monthName(p.selectedMonth)} ${p.selectedYear}",
+          "${_monthName(_selectedMonth)} $_selectedYear",
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         IconButton(
-            onPressed: () => p.changeMonth(p.selectedMonth + 1),
-            icon: const Icon(Icons.chevron_right)),
+          onPressed: () {
+            setState(() {
+              _focusedDay = DateTime(
+                _focusedDay.year,
+                _focusedDay.month + 1,
+                _focusedDay.day,
+              );
+            });
+          },
+          icon: const Icon(Icons.chevron_right),
+        ),
       ],
     );
   }
@@ -50,16 +75,14 @@ class DetailMoodScreen extends StatelessWidget {
   String _monthName(int m) {
     const months = [
       "",
-      "January","February","March","April","May","June",
-      "July","August","September","October","November","December"
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
     ];
     return months[m];
   }
 
-  // ================= CALENDAR =================
-
-  Widget _calendar(DashboardProvider p) {
-    final days = DateUtils.getDaysInMonth(p.selectedYear, p.selectedMonth);
+  Widget _calendar() {
+    final days = DateUtils.getDaysInMonth(_selectedYear, _selectedMonth);
 
     return GridView.builder(
       padding: EdgeInsets.zero,
@@ -70,33 +93,17 @@ class DetailMoodScreen extends StatelessWidget {
       ),
       itemCount: days,
       itemBuilder: (context, i) {
-        final date = DateTime(p.selectedYear, p.selectedMonth, i + 1);
-        final isSelected = date.day == p.selectedDate.day;
+        final date = DateTime(_selectedYear, _selectedMonth, i + 1);
+        final isSelected =
+            date.day == _selectedDay.day && date.month == _selectedDay.month;
 
-        // Ambil mood berdasarkan tanggal
-        MoodModel mood = p.monthlyMood.firstWhere(
-          (m) =>
-              m.date.year == date.year &&
-              m.date.month == date.month &&
-              m.date.day == date.day,
-          orElse: () => MoodModel(
-            date: date,
-            mood: "",
-            emotions: [],
-            note: "",
-            imagePath: "",
-          ),
-        );
-
-        final bool hasMood = mood.mood.isNotEmpty;
-
+        final bool hasMood = false;
         Color moodColor = Colors.grey.shade300;
-        if (mood.mood == "Bad") moodColor = Colors.redAccent;
-        if (mood.mood == "Fine") moodColor = Colors.teal;
-        if (mood.mood == "Wonderful") moodColor = Colors.amber;
 
         return GestureDetector(
-          onTap: () => p.selectDate(date),
+          onTap: () {
+            setState(() => _selectedDay = date);
+          },
           child: Container(
             decoration: BoxDecoration(
               color: isSelected ? moodColor.withOpacity(0.5) : Colors.white,
@@ -121,27 +128,43 @@ class DetailMoodScreen extends StatelessWidget {
     );
   }
 
-  // ================= NOTE BOX =================
+  Widget _noteBox() {
+    return StreamBuilder<List<MoodEntryModel>>(
+      stream: _moodService.getMoodsForDay(_selectedDay),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-  Widget _noteBox(DashboardProvider p) {
-    final mood = p.getNoteForSelectedDate();
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: SingleChildScrollView(
-        child: Text(
-          mood?.note.isNotEmpty == true
-              ? mood!.note
-              : "Tidak ada catatan",
-          style: const TextStyle(fontSize: 16),
-        ),
-      ),
+        final dailyEntries = snapshot.data ?? [];
+
+        String combinedNotes = dailyEntries
+            .map((e) =>
+                "- ${e.moodLabel} (${DateFormat('HH:mm').format(e.timestamp)}):\n  ${e.note}\n")
+            .join('\n');
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: SingleChildScrollView(
+            child: Text(
+              combinedNotes.isNotEmpty
+                  ? "Catatan Tanggal ${DateFormat('d MMM').format(_selectedDay)}:\n\n$combinedNotes"
+                  : "Tidak ada catatan mood pada tanggal ini.",
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+        );
+      },
     );
   }
 }

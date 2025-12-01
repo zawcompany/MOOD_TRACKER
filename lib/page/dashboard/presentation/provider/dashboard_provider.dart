@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../domain/mood_model.dart';
 
 class DashboardProvider extends ChangeNotifier {
-  /// --- BAGIAN LAMA (TIDAK DIHAPUS) ---
   List<MoodModel> weeklyMood = [];
   List<MoodModel> monthlyMood = [];
 

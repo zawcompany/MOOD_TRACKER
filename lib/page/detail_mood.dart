@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../services/mood_service.dart'; 
+import 'custom_navbar_screen.dart'; 
 
 class DetailMoodPage extends StatefulWidget {
   final String label;
@@ -17,23 +19,24 @@ class DetailMoodPage extends StatefulWidget {
 }
 
 class _DetailMoodPageState extends State<DetailMoodPage> {
-  // chips state
   final Set<String> _selectedEmotions = {};
   final TextEditingController _noteController = TextEditingController();
+  
+  final MoodService _moodService = MoodService();
+  bool _isLoading = false;
 
-  // emotion options per mood label
   Map<String, List<String>> options = {
     "Bad": ["Anxious", "Frustrated", "Gloomy", "Irritable", "Lonely"],
     "Fine": ["Calm", "Content", "Neutral", "Relaxed", "Stable"],
     "Wonderful": ["Excited", "Joyful", "Enthusiastic", "Beloved", "Euphoric"],
   };
 
-  Color? overrideBgColor; // BG khusus untuk detail mood
+  Color? overrideBgColor; 
 
   @override
   void initState() {
     super.initState();
-    overrideBgColor = widget.bgColor.withOpacity(0.25); // BG ringan
+    overrideBgColor = widget.bgColor.withOpacity(0.25); 
   }
 
   @override
@@ -42,19 +45,58 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
     super.dispose();
   }
 
+  void _onSave() async {
+    if (_selectedEmotions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Anda harus memilih setidaknya satu emosi.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final note = _noteController.text.trim();
+    final moodColorHex = '0x${widget.bgColor.value.toRadixString(16).toUpperCase()}';
+    final emotionsString = _selectedEmotions.join(', ');
+    final finalNote = "$note [Emotions: $emotionsString]";
+
+    try {
+      await _moodService.saveMoodEntry(
+        moodLabel: widget.label,
+        imagePath: widget.imagePath,
+        moodColorHex: moodColorHex,
+        note: "$note [Emotions: $emotionsString]",
+      );
+      
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const CustomNavbarScreen()),
+        (Route<dynamic> route) => false,
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menyimpan mood: ${e.toString().replaceFirst('Exception: ', '')}')),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<String> emotionOptions =
         options[widget.label] ?? <String>["Neutral"];
 
     return Scaffold(
-      backgroundColor: overrideBgColor, // Background detail TIDAK ikut choose mood
+      backgroundColor: overrideBgColor, 
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Column(
             children: [
-              // TOP BAR
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -103,7 +145,6 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
               const SizedBox(height: 14),
 
-              // EMOTION CHIPS (warna mengikuti mood)
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -126,7 +167,6 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
                         if (val) {
                           _selectedEmotions.add(e);
 
-                          // ubah background agar lebih lembut saat memilih
                           overrideBgColor = widget.bgColor.withOpacity(0.18);
                         } else {
                           _selectedEmotions.remove(e);
@@ -137,11 +177,9 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
                       });
                     },
 
-                    // WARNA FOLLOW MOOD
                     backgroundColor: Colors.white,
                     selectedColor: widget.bgColor,
 
-                    // HOVER / PRESSED EFFECT
                     pressElevation: 0,
                     shadowColor: widget.bgColor.withOpacity(0.25),
                     selectedShadowColor: widget.bgColor.withOpacity(0.4),
@@ -190,20 +228,28 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
               const Spacer(),
 
-              // SAVE BUTTON
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _onSave,
+                  onPressed: _isLoading ? null : _onSave, 
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
+                    foregroundColor: Colors.white,
                   ),
-                  child:
-                      const Text("Save", style: TextStyle(color: Colors.white)),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20, 
+                          width: 20, 
+                          child: CircularProgressIndicator(
+                            color: Colors.white, 
+                            strokeWidth: 2
+                          )
+                        )
+                      : const Text("Save", style: TextStyle(fontSize: 18)),
                 ),
               ),
             ],
@@ -211,16 +257,5 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
         ),
       ),
     );
-  }
-
-  void _onSave() {
-    final Map<String, dynamic> result = {
-      "mood": widget.label,
-      "emotions": _selectedEmotions.toList(),
-      "note": _noteController.text.trim(),
-      "image": widget.imagePath,
-    };
-
-    Navigator.pop(context, result);
   }
 }

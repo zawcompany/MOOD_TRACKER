@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/auth_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -8,16 +11,124 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  String gender = "Male";
-  DateTime? selectedDate;
+  final AuthService _authService = AuthService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  final nameC = TextEditingController(text: "iLa");
-  final phoneC = TextEditingController(text: "+62 81234567890");
-  final emailC = TextEditingController(text: "olaamigos@gmail.com");
-  final usernameC = TextEditingController(text: "@nblsalsa");
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+
+  String _gender = "Male";
+  DateTime? _selectedDate;
+  bool _isLoading = false;
+  bool _isProfileLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() => _isProfileLoading = false);
+      return;
+    }
+
+    _nameController.text = user.displayName ?? '';
+    _emailController.text = user.email ?? '';
+
+    try {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null) {
+          _phoneController.text = data['phone'] ?? '';
+          _gender = data['gender'] ?? 'Male';
+          _usernameController.text = data['username'] ?? '';
+
+          if (data['birthday'] is Timestamp) {
+            _selectedDate = (data['birthday'] as Timestamp).toDate();
+          }
+        }
+      }
+    } catch (e) {
+      print("Error loading profile data: $e");
+    } finally {
+      setState(() => _isProfileLoading = false);
+    }
+  }
+
+  void _handleSave() async {
+    if (_nameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nama dan Email tidak boleh kosong.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      await _authService.updateUserData(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+      );
+
+      await _firestore.collection('users').doc(user.uid).update({
+        'phone': _phoneController.text.trim(),
+        'gender': _gender,
+        'username': _usernameController.text.trim(),
+        'birthday':
+            _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
+      });
+
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profil berhasil diperbarui!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Gagal memperbarui profil: ${e.toString().replaceFirst('Exception: ', '')}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isProfileLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       bottomNavigationBar: _bottomNav(),
       body: Container(
@@ -27,21 +138,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // Back + title
                 Row(
                   children: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.arrow_back),
                     ),
+                    const Expanded(
+                      child: Text(
+                        "Edit Profile",
+                        textAlign: TextAlign.center,
+                        style:
+                            TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(width: 48),
                   ],
                 ),
-
-                const Text(
-                  "Edit profile",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-                ),
-
                 const SizedBox(height: 20),
 
                 Stack(
@@ -60,7 +173,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           color: Colors.black,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                        child: const Icon(Icons.edit,
+                            color: Colors.white, size: 18),
                       ),
                     )
                   ],
@@ -68,20 +182,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                 const SizedBox(height: 25),
 
-                _input("Full name", nameC),
+                _input("Full name", _nameController),
                 const SizedBox(height: 12),
 
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField(
-                        value: gender,
+                      child: DropdownButtonFormField<String>(
+                        value: _gender,
                         items: const [
                           DropdownMenuItem(value: "Male", child: Text("Male")),
-                          DropdownMenuItem(value: "Female", child: Text("Female")),
+                          DropdownMenuItem(
+                              value: "Female", child: Text("Female")),
                         ],
                         decoration: _inputDec("Gender"),
-                        onChanged: (v) => setState(() => gender = v!),
+                        onChanged: (v) => setState(() => _gender = v!),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -90,9 +205,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         readOnly: true,
                         decoration: _inputDec("Birthday"),
                         controller: TextEditingController(
-                          text: selectedDate == null
-                              ? "Male"
-                              : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                          text: _selectedDate == null
+                              ? "Pilih Tanggal"
+                              : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
                         ),
                         onTap: _pickBirthday,
                       ),
@@ -101,15 +216,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
 
                 const SizedBox(height: 12),
-                _input("Phone number", phoneC),
+                _input("Phone number", _phoneController),
                 const SizedBox(height: 12),
-                _input("Email", emailC),
+                _input("Email", _emailController),
                 const SizedBox(height: 12),
-                _input("User name", usernameC),
+                _input("User name", _usernameController),
 
                 const SizedBox(height: 30),
 
-                // Save Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -119,9 +233,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
+                      foregroundColor: Colors.white,
                     ),
-                    onPressed: () {},
-                    child: const Text("Save", style: TextStyle(color: Colors.white)),
+                    onPressed:
+                        _isLoading || _isProfileLoading ? null : _handleSave,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Text("Save",
+                            style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
@@ -149,11 +273,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   _pickBirthday() async {
     final pick = await showDatePicker(
       context: context,
-      initialDate: DateTime(2003),
+      initialDate: _selectedDate ?? DateTime(2003),
       firstDate: DateTime(1950),
       lastDate: DateTime(2030),
     );
-    if (pick != null) setState(() => selectedDate = pick);
+    if (pick != null) setState(() => _selectedDate = pick);
   }
 
   BoxDecoration _bgGradient() {
