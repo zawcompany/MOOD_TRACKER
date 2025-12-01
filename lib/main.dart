@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mood_tracker/page/forgot_password_page.dart';
+import 'package:mood_tracker/page/otp_verification_page.dart';
+import 'package:mood_tracker/page/reset_new_password_page.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -11,6 +14,9 @@ import 'page/dashboard/presentation/screens/detail_mood_screen.dart';
 import 'page/sign_in_page.dart';
 import 'page/welcome_page.dart';
 import 'page/profile_page.dart';
+import 'page/forgot_password_page.dart';
+import 'page/otp_verification_page.dart';
+import 'page/reset_new_password_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,11 +63,16 @@ class MoodTrackerApp extends StatelessWidget {
 
           "/dashboard": (_) => DashboardScreen(),
           "/detailMood": (_) => const DetailMoodScreen(),
+
+          "/forgotPassword": (_) => const ForgotPasswordPage(),
+          "/otpVerification": (_) => const OtpVerificationPage(),
+          "/resetPassword": (_) => const CreateNewPasswordPage(),
         },
       ),
     );
   }
 }
+
 class ErrorApp extends StatelessWidget {
   final String errorMessage;
 
@@ -93,4 +104,3 @@ class ErrorApp extends StatelessWidget {
     );
   }
 }
-

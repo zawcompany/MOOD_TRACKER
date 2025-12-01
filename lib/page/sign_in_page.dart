@@ -118,6 +118,7 @@ class _SignInPageState extends State<SignInPage> {
                   controller: _emailController, 
                   keyboardType: TextInputType.emailAddress,
                 ),
+
                 // Text Field untuk PASSWORD
                 _CustomTextField(
                   label: 'Password',
@@ -130,7 +131,8 @@ class _SignInPageState extends State<SignInPage> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      // Halaman Forget Password
+                      // Navigasi ke forgot password
+                      Navigator.pushNamed(context, "/forgotPassword");
                     },
                     child: const Text(
                       "Forget Password?",
@@ -151,7 +153,6 @@ class _SignInPageState extends State<SignInPage> {
                     shadowColor: Colors.purple.withOpacity(0.3),
                     elevation: 4,
                   ),
-
                   onPressed: _isLoading ? null : _handleSignIn,
                   child: _isLoading
                       ? const SizedBox(
