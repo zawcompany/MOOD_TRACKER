@@ -2,21 +2,22 @@ import 'package:flutter/material.dart';
 import '../../../../../services/quote_service.dart'; 
 
 class QuoteCard extends StatefulWidget {
-  const QuoteCard({super.key});
+  final String moodType;
+
+  const QuoteCard({super.key, this.moodType = 'positive'}); 
 
   @override
   State<QuoteCard> createState() => _QuoteCardState();
 }
 
 class _QuoteCardState extends State<QuoteCard> {
-  // [STATE BARU]: Future dan Service
   late Future<QuoteModel> _quoteFuture;
   final QuoteService _quoteService = QuoteService();
 
   @override
   void initState() {
     super.initState();
-    _quoteFuture = _quoteService.fetchRandomQuote();
+    _quoteFuture = _quoteService.fetchRandomQuote(moodType: widget.moodType);
   }
 
   Widget _buildQuoteContent(String quote, String author, Color color) {
