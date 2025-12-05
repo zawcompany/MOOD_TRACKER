@@ -10,11 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # State Management
   provider: ^6.0.5 
-  # Icons untuk Quotes
   font_awesome_flutter: ^10.6.0
-  # Notifikasi
   firebase_core: ^2.24.2
   firebase_messaging: ^14.7.15
   firebase_auth: ^4.19.0
@@ -22,9 +19,10 @@ dependencies:
   http: ^1.2.1
   intl: ^0.19.0
   flutter_local_notifications: ^19.0.0
+  timezone: ^0.10.1 
 
   cupertino_icons: ^1.0.8
-
+  image_picker: ^1.0.7
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -42,5 +40,3 @@ fonts:
         - asset: assets/fonts/Quicksand_Bold.otf
         - asset: assets/fonts/Quicksand_Book.otf
         - asset: assets/fonts/Quicksand_Light.otf
-
-image_picker: ^1.0.7
