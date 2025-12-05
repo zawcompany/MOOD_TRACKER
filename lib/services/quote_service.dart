@@ -18,9 +18,14 @@ class QuoteModel {
 
 class QuoteService {
   final String _apiUrl = 'https://api.quotable.io/random';
-
-  Future<QuoteModel> fetchRandomQuote() async {
-    final uri = Uri.parse(_apiUrl);
+  Future<QuoteModel> fetchRandomQuote({String moodType = 'positive'}) async {
+    String tag;
+    if (moodType == 'negative') {
+        tag = 'inspirational|life'; 
+    } else {
+        tag = 'happiness|motivational'; 
+    }
+    final uri = Uri.parse('$_apiUrl?tags=$tag'); 
     
     try {
       final response = await http.get(uri);
