@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'otp_verification_page.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -78,10 +77,27 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const OtpVerificationPage()),
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        title: const Text("Email Terkirim"),
+                        content: const Text(
+                          "Link reset password sudah dikirim ke email kamu. Cek inbox ya!",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // nutup popup
+                            },
+                            child: const Text("OK"),
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
                 child: const Text(
