@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../services/mood_service.dart';
 
 class WeeklyMoodRow extends StatelessWidget {
@@ -17,26 +18,41 @@ class WeeklyMoodRow extends StatelessWidget {
     return Colors.grey;
   }
 
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Map<int, MoodEntryModel?> moodMap = {};
-    for (int i = 1; i <= 7; i++) {
-      moodMap[i] = null;
-    }
+    final now = DateTime.now();
+    final Map<DateTime, MoodEntryModel> moodMap = {};
 
     for (var m in moods) {
-      moodMap[m.timestamp.weekday] = m;
+      final dateKey = DateTime(m.timestamp.year, m.timestamp.month, m.timestamp.day);
+      moodMap[dateKey] = m;
     }
 
-    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    final List<DateTime> last7Days = List.generate(7, (i) {
+      return DateTime(now.year, now.month, now.day).subtract(Duration(days: 6 - i));
+    });
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(7, (i) {
-        final mood = moodMap[i + 1];
+        final date = last7Days[i];
+        final mood = moodMap[date];
         final color = mood != null
             ? _colorFromHex(mood.moodColorHex)
             : Colors.grey.shade300;
+      
+        String dayName;
+        if (_isSameDay(date, now)) {
+          dayName = "Today";
+        } else if (_isSameDay(date, now.subtract(const Duration(days: 1)))) {
+          dayName = "Y'day"; 
+        } else {
+          dayName = DateFormat('EEE').format(date);
+        }
 
         return Column(
           children: [
@@ -50,7 +66,12 @@ class WeeklyMoodRow extends StatelessWidget {
                   : null,
             ),
             const SizedBox(height: 4),
-            Text(dayNames[i]),
+            Text(
+                dayName,
+                style: TextStyle(
+                    fontWeight: _isSameDay(date, now) ? FontWeight.bold : FontWeight.normal,
+                ),
+            ),
           ],
         );
       }),
