@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../services/mood_service.dart';
+import '../../domain/mood_model.dart';
 import '../provider/dashboard_provider.dart';
 import '../widgets/weekly_mood_row.dart';
 import '../widgets/quote_card.dart';
@@ -16,6 +17,14 @@ class DashboardScreen extends StatelessWidget {
   String _getUserName() {
     final user = FirebaseAuth.instance.currentUser;
     return user?.displayName ?? 'Pengguna';
+  }
+
+  MoodModel _mapEntryToModel(MoodEntryModel entry) {
+    return MoodModel(
+      date: entry.timestamp, 
+      emotions: const [], 
+      imagePath: entry.imagePath,
+    );
   }
 
   @override
@@ -63,16 +72,27 @@ class DashboardScreen extends StatelessWidget {
                     );
                   }
 
-                  final moods = snapshot.data ?? [];
+                  final fetchedEntries = snapshot.data ?? [];
 
-                  if (moods.isEmpty) {
+                  final List<MoodModel> mappedMoods = fetchedEntries
+                      .map((entry) => _mapEntryToModel(entry))
+                      .toList();
+
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mappedMoods.isNotEmpty) {
+                       provider.loadWeeklyMood(mappedMoods);
+                       provider.loadMonthlyMood(mappedMoods); 
+                    }
+                  });
+
+                  if (fetchedEntries.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 20),
                       child: Text('Belum ada entri mood dalam 7 hari terakhir.'),
                     );
                   }
 
-                  return WeeklyMoodRow(moods: moods);
+                  return WeeklyMoodRow(moods: fetchedEntries);
                 },
               ),
 
