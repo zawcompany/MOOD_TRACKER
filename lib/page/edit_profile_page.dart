@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart'; 
+import 'dart:io';// [2] Import dart:io untuk File
+
 import '../../services/auth_service.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -18,6 +21,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _birthdayController = TextEditingController();
+
+  // [3] State baru untuk gambar dan ImagePicker
+  File? _imageFile; 
+  final ImagePicker _picker = ImagePicker();
 
   String _gender = "Male";
   DateTime? _selectedDate;
@@ -40,6 +47,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _emailController.dispose();
     _birthdayController.dispose();
     super.dispose();
+  }
+  
+  // fungsi untuk memilih gambar
+  Future<void> _pickImage() async {
+    // meminta izin memilih gambar dari galeri
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    
+    if (pickedFile != null) {
+      if (mounted) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          // Logika untuk upload ke Firebase Storage akan ditambahkan di _handleSave()
+        });
+      }
+    }
   }
 
   Future<void> _loadUserProfile() async {
@@ -91,6 +113,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (mounted) setState(() => _isLoading = true);
 
     try {
+      // Di sini nanti tempat Anda menambahkan logika upload _imageFile ke Firebase Storage
+      // dan memperbarui photoURL user jika _imageFile != null.
+
       await _authService.updateUserData(
         name: _usernameController.text.trim(), 
         email: _emailController.text.trim(),
@@ -183,28 +208,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      // Profile Picture
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          const CircleAvatar(
-                            radius: 55,
-                            backgroundImage: AssetImage("assets/images/profileMT.jpg"),
-                          ),
-                          Positioned(
-                            right: 6,
-                            bottom: 6,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Colors.black,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.edit,
-                                  color: Colors.white, size: 18),
+                      // profile picture DIBUNGKUS DENGAN GESTUREDETECTOR
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 55,
+                              // gunakan FileImage jika gambar baru dipilih
+                              backgroundImage: _imageFile != null
+                                  ? FileImage(_imageFile!) as ImageProvider
+                                  : const AssetImage("assets/images/profileMT.jpg"),
                             ),
-                          )
-                        ],
+                            Positioned(
+                              right: 6,
+                              bottom: 6,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.edit,
+                                    color: Colors.white, size: 18),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
 
                       const SizedBox(height: 25),
@@ -300,18 +331,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(color: Colors.black54),
-      // Styling untuk border yang fokus (saat diklik)
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: _purpleBorderColor, width: 1.0), 
       ),
-      // Styling untuk border normal (saat tidak fokus)
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: _purpleBorderColor, width: 1.0), 
       ),
-
-      // Styling untuk border default 
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: _purpleBorderColor, width: 1.0), 
