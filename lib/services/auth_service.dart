@@ -86,27 +86,46 @@ class AuthService {
   }
 
   // 4. Update Data User
-  Future<void> updateUserData({String? name, String? email}) async {
+  Future<void> updateUserData({
+    String? name,
+    String? email,
+    String? phone, 
+    String? gender, 
+    DateTime? birthday, 
+    String? username,
+  }) async {
     final user = _auth.currentUser;
 
     if (user == null) {
       throw Exception("User is not logged in.");
     }
 
+    final Map<String, dynamic> firestoreUpdates = {};
+
+    // 1. Update Display Name (Firebase Auth) & Firestore Name
     if (name != null && name.isNotEmpty) {
       await user.updateDisplayName(name);
-
-      await _firestore.collection('users').doc(user.uid).update({
-        'name': name,
-      });
+      firestoreUpdates['name'] = name;
     }
 
+    // 2. Update Email (Firebase Auth) & Firestore Email
     if (email != null && email.isNotEmpty && email != user.email) {
       await user.updateEmail(email);
+      firestoreUpdates['email'] = email;
+    }
+    
+    // 3. Update Field Baru (Firestore)
+    if (phone != null) firestoreUpdates['phone'] = phone;
+    if (gender != null) firestoreUpdates['gender'] = gender;
+    if (username != null) firestoreUpdates['username'] = username;
 
-      await _firestore.collection('users').doc(user.uid).update({
-        'email': email,
-      });
+    if (birthday != null) firestoreUpdates['birthday'] = Timestamp.fromDate(birthday);
+
+    if (firestoreUpdates.isNotEmpty) {
+      await _firestore.collection('users').doc(user.uid).set(
+        firestoreUpdates,
+        SetOptions(merge: true),
+      );
     }
 
     await user.reload();
