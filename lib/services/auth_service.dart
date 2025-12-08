@@ -18,7 +18,6 @@ class ProfileData {
     this.username
   });
 }
-
 class AuthService {
   FirebaseAuth get _auth => FirebaseAuth.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
@@ -123,8 +122,11 @@ class AuthService {
 
     final birthday = (data?['birthday'] as Timestamp?)?.toDate();
 
+    // Ambil nama dari Firestore (yang disimpan saat register)
+    final firestoreFullName = data?['name'] as String?;
+
     return ProfileData(
-      fullName: user.displayName ?? 'N/A',
+      fullName: firestoreFullName ?? user.displayName ?? 'N/A',
       email: user.email ?? 'N/A',
       username: data?['username'],
       phone: data?['phone'],
