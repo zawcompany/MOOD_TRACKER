@@ -96,7 +96,7 @@ class _QuoteCardState extends State<QuoteCard> {
           if (snapshot.hasData) {
             final quote = snapshot.data!;
             return _buildQuoteContent(
-              '${quote.content}',
+              quote.content,
               '- ${quote.author}',
               Colors.white,
             );

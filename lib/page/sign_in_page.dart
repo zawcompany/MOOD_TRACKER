@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
 import '../../services/auth_service.dart';
-import 'custom_navbar_screen.dart';
 import 'sign_up_page.dart';
 import 'choose_mood.dart';
 

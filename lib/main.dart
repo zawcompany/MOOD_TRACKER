@@ -14,9 +14,6 @@ import 'page/dashboard/presentation/screens/detail_mood_screen.dart';
 import 'page/sign_in_page.dart';
 import 'page/welcome_page.dart';
 import 'page/profile_page.dart';
-import 'page/forgot_password_page.dart';
-import 'page/otp_verification_page.dart';
-import '../../services/reset_new_password_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

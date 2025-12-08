@@ -14,16 +14,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final AuthService _authService = AuthService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController(); 
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _birthdayController = TextEditingController();
 
   String _gender = "Male";
   DateTime? _selectedDate;
   bool _isLoading = false;
   bool _isProfileLoading = true;
+
+  // definisikan warna ungu untuk border
+  final Color _purpleBorderColor = const Color.fromARGB(177, 142, 120, 179); 
 
   @override
   void initState() {
@@ -33,10 +35,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _usernameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _usernameController.dispose();
     _birthdayController.dispose();
     super.dispose();
   }
@@ -49,7 +50,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       return;
     }
 
-    _nameController.text = user.displayName ?? '';
     _emailController.text = user.email ?? '';
 
     try {
@@ -59,13 +59,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final data = doc.data()!;
         _phoneController.text = data['phone'] ?? '';
         _gender = data['gender'] ?? 'Male';
-        _usernameController.text = data['username'] ?? '';
+        _usernameController.text = data['username'] ?? user.displayName ?? '';
 
         if (data['birthday'] is Timestamp) {
           _selectedDate = (data['birthday'] as Timestamp).toDate();
           _birthdayController.text =
               "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}";
         }
+      } else {
+         _usernameController.text = user.displayName ?? '';
       }
     } catch (e) {
       debugPrint("Error loading profile data: $e");
@@ -75,10 +77,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _handleSave() async {
-    if (_nameController.text.trim().isEmpty) {
+    if (_usernameController.text.trim().isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama tidak boleh kosong.')),
+        const SnackBar(content: Text('Username tidak boleh kosong.')),
       );
       return;
     }
@@ -90,7 +92,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       await _authService.updateUserData(
-        name: _nameController.text.trim(),
+        name: _usernameController.text.trim(), 
         email: _emailController.text.trim(),
       );
 
@@ -103,11 +105,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
       });
 
       if (!mounted) return;
-      Navigator.pop(context);
-
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profil berhasil diperbarui!')),
       );
+      Navigator.pop(context); 
+      
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -143,19 +146,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
     }
 
-    return Scaffold(
-      body: Container(
-        decoration: _bgGradient(),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Row(
+    return Container(
+      decoration: _bgGradient(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent, 
+        body: SafeArea(
+          child: Column(
+            children: [
+              // headernya (button back dan title)
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 20, right: 20, top: 20, bottom: 10),
+                child: Row(
                   children: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.arrow_back),
+                      color: Colors.black,
                     ),
                     const Expanded(
                       child: Text(
@@ -168,80 +175,90 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(width: 48),
                   ],
                 ),
+              ),
 
-                const SizedBox(height: 20),
-
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    const CircleAvatar(
-                      radius: 55,
-                      backgroundImage: AssetImage("assets/profile.png"),
-                    ),
-                    Positioned(
-                      right: 6,
-                      bottom: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Colors.black,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.edit,
-                            color: Colors.white, size: 18),
-                      ),
-                    )
-                  ],
-                ),
-
-                const SizedBox(height: 25),
-
-                _input("Full name", _nameController),
-                const SizedBox(height: 12),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _gender,
-
-                        items: const [
-                          DropdownMenuItem(value: "Male", child: Text("Male")),
-                          DropdownMenuItem(
-                              value: "Female", child: Text("Female")),
+              // formulir
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      // Profile Picture
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const CircleAvatar(
+                            radius: 55,
+                            backgroundImage: AssetImage("assets/images/profileMT.jpg"),
+                          ),
+                          Positioned(
+                            right: 6,
+                            bottom: 6,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.black,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.edit,
+                                  color: Colors.white, size: 18),
+                            ),
+                          )
                         ],
-                        decoration: _inputDec("Gender"),
-                        onChanged: (v) => setState(() => _gender = v!),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _birthdayController,
+
+                      const SizedBox(height: 25),
+
+                      // input Fields
+                      _input("Username", _usernameController), 
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              initialValue: _gender,
+                              items: const [
+                                DropdownMenuItem(value: "Male", child: Text("Male")),
+                                DropdownMenuItem(
+                                    value: "Female", child: Text("Female")),
+                              ],
+                              decoration: _inputDec("Gender"),
+                              onChanged: (v) => setState(() => _gender = v!),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _birthdayController,
+                              readOnly: true,
+                              decoration: _inputDec("Birthday"),
+                              onTap: _pickBirthday,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+                      _input("Phone number", _phoneController),
+                      const SizedBox(height: 12),
+
+                      TextField(
+                        controller: _emailController,
                         readOnly: true,
-                        decoration: _inputDec("Birthday"),
-                        onTap: _pickBirthday,
+                        decoration: _inputDec("Email (tidak dapat diedit)"),
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 10), 
+                    ],
+                  ),
                 ),
+              ),
 
-                const SizedBox(height: 12),
-                _input("Phone number", _phoneController),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: _emailController,
-                  readOnly: true,
-                  decoration: _inputDec("Email (tidak dapat diedit)"),
-                ),
-
-                const SizedBox(height: 12),
-                _input("User name", _usernameController),
-
-                const SizedBox(height: 30),
-
-                SizedBox(
+              // button save
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -264,14 +281,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             style: TextStyle(color: Colors.white)),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-
+  
   Widget _input(String label, TextEditingController c) {
     return TextField(
       controller: c,
@@ -282,7 +299,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
   InputDecoration _inputDec(String label) {
     return InputDecoration(
       labelText: label,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      labelStyle: const TextStyle(color: Colors.black54),
+      // Styling untuk border yang fokus (saat diklik)
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: _purpleBorderColor, width: 1.0), 
+      ),
+      // Styling untuk border normal (saat tidak fokus)
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: _purpleBorderColor, width: 1.0), 
+      ),
+
+      // Styling untuk border default 
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: _purpleBorderColor, width: 1.0), 
+      ),
+      filled: true,
+      fillColor: const Color(0xFFF1E6F7), 
     );
   }
 
