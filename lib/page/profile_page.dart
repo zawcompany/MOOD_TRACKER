@@ -12,13 +12,6 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: CustomNavbar(
-        currentIndex: 1,
-        onTap: (i) {
-          if (i == 1) return;
-          Navigator.pushNamed(context, "/dashboard");
-        },
-      ),
       body: Container(
         decoration: _bgGradient(),
         child: SafeArea(
