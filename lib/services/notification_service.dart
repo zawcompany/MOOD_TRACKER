@@ -1,5 +1,3 @@
-// lib/services/notification_service.dart
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -43,6 +41,7 @@ class NotificationService {
     final String reminderMessage = message ?? moodReminders[0];
 
     final now = tz.TZDateTime.now(tz.local);
+
     var scheduledDate =
         tz.TZDateTime(tz.local, now.year, now.month, now.day, 20, 0); 
 
@@ -66,13 +65,11 @@ class NotificationService {
       0,
       'Mood Tracker',
       reminderMessage,
-      scheduledDate, 
+      scheduledDate,
       notificationDetails,
       payload: 'NAV_TO_CHOOSE_MOOD',
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
 
     print("Pengingat mood harian berhasil dijadwalkan.");

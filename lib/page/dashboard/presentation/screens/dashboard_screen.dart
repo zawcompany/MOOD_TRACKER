@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../../services/mood_service.dart';
+import '../../../../services/mood_service.dart' as mood_service; 
 import '../../domain/mood_model.dart';
 import '../provider/dashboard_provider.dart';
 import '../widgets/weekly_mood_row.dart';
@@ -12,17 +12,19 @@ import 'package:mood_tracker/page/choose_mood.dart';
 class DashboardScreen extends StatelessWidget {
   DashboardScreen({super.key});
 
-  final MoodService _moodService = MoodService();
+  final mood_service.MoodService _moodService = mood_service.MoodService(); 
 
   String _getUserName() {
     final user = FirebaseAuth.instance.currentUser;
     return user?.displayName ?? 'Pengguna';
   }
 
-  MoodModel _mapEntryToModel(MoodEntryModel entry) {
+  MoodModel _mapEntryToModel(mood_service.MoodEntryModel entry) {
     return MoodModel(
-      date: entry.timestamp, 
-      emotions: const [], 
+      date: entry.timestamp,
+      mood: entry.moodLabel, 
+      emotions: const [],
+      note: entry.note, 
       imagePath: entry.imagePath,
     );
   }
@@ -59,7 +61,7 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-              StreamBuilder<List<MoodEntryModel>>(
+              StreamBuilder<List<mood_service.MoodEntryModel>>( 
                 stream: _moodService.getWeeklyMoodStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -80,8 +82,8 @@ class DashboardScreen extends StatelessWidget {
 
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mappedMoods.isNotEmpty) {
-                       provider.loadWeeklyMood(mappedMoods);
-                       provider.loadMonthlyMood(mappedMoods); 
+                      provider.loadWeeklyMood(mappedMoods);
+                      provider.loadMonthlyMood(mappedMoods); 
                     }
                   });
 
@@ -92,7 +94,7 @@ class DashboardScreen extends StatelessWidget {
                     );
                   }
 
-                  return WeeklyMoodRow(moods: fetchedEntries);
+                  return WeeklyMoodRow(moods: fetchedEntries); 
                 },
               ),
 

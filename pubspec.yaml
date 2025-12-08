@@ -11,7 +11,6 @@ dependencies:
     sdk: flutter
 
   provider: ^6.0.5 
-  font_awesome_flutter: ^10.6.0
   firebase_core: ^2.24.2
   firebase_messaging: ^14.7.15
   firebase_auth: ^4.19.0
@@ -46,4 +45,4 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon" 
   ios: true 
-  image_path: "assets/images/Logo MT.png"
+  image_path: "assets/images/Logo MT.png" 
