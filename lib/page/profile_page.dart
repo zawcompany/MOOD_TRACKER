@@ -4,10 +4,46 @@ import '../../services/auth_service.dart';
 import '../page/edit_profile_page.dart';
 import '../page/change_password_page.dart';
 import '../page/logout_dialog.dart';
-import 'package:mood_tracker/page/widgets/custom_navbar.dart';
+// import 'package:mood_tracker/page/widgets/custom_navbar.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
+
+  // Helper method untuk memformat tanggal
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'N/A';
+    // Format tanggal ke DD/MM/YYYY
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  // Helper method untuk membangun satu baris detail profil
+  Widget _buildProfileDetailRow(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.black54, size: 24),
+          const SizedBox(width: 15),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                // Menampilkan "N/A" jika nilai kosong
+                value.isEmpty ? "N/A" : value,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +136,49 @@ class ProfilePage extends StatelessWidget {
 
           const SizedBox(height: 30),
 
+          // --- Bagian Detail Profil BARU ---
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 25),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xCCFFFFFF),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0x0D000000),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Email
+                _buildProfileDetailRow(
+                    "Email", data.email, Icons.email_outlined),
+                // Nomor Telepon
+                _buildProfileDetailRow(
+                    "Nomor Telepon", data.phone ?? 'N/A', Icons.phone_outlined),
+                // Jenis Kelamin
+                _buildProfileDetailRow(
+                    "Jenis Kelamin", data.gender ?? 'N/A', Icons.person_outline),
+                // Tanggal Lahir
+                _buildProfileDetailRow(
+                    "Tanggal Lahir", _formatDate(data.birthday), Icons.calendar_today_outlined),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 30),
+          // ---------------------------------
+
+          // Bagian Action Buttons yang sudah ada
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 25),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
+              color: const Color(0xCCFFFFFF),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
@@ -136,6 +210,7 @@ class ProfilePage extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );

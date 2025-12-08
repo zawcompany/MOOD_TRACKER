@@ -18,6 +18,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _birthdayController = TextEditingController();
 
   String _gender = "Male";
   DateTime? _selectedDate;
@@ -36,13 +37,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _phoneController.dispose();
     _emailController.dispose();
     _usernameController.dispose();
+    _birthdayController.dispose();
     super.dispose();
   }
 
   Future<void> _loadUserProfile() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
-      setState(() => _isProfileLoading = false);
+      if (mounted) setState(() => _isProfileLoading = false);
       return;
     }
 
@@ -51,43 +54,39 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        final data = doc.data();
-        if (data != null) {
-          _phoneController.text = data['phone'] ?? '';
-          _gender = data['gender'] ?? 'Male';
-          _usernameController.text = data['username'] ?? '';
 
-          if (data['birthday'] is Timestamp) {
-            _selectedDate = (data['birthday'] as Timestamp).toDate();
-          }
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        _phoneController.text = data['phone'] ?? '';
+        _gender = data['gender'] ?? 'Male';
+        _usernameController.text = data['username'] ?? '';
+
+        if (data['birthday'] is Timestamp) {
+          _selectedDate = (data['birthday'] as Timestamp).toDate();
+          _birthdayController.text =
+              "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}";
         }
       }
     } catch (e) {
-      print("Error loading profile data: $e");
+      debugPrint("Error loading profile data: $e");
     } finally {
-      setState(() => _isProfileLoading = false);
+      if (mounted) setState(() => _isProfileLoading = false);
     }
   }
 
-  void _handleSave() async {
-    if (_nameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty) {
+  Future<void> _handleSave() async {
+    if (_nameController.text.trim().isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama dan Email tidak boleh kosong.')),
+        const SnackBar(content: Text('Nama tidak boleh kosong.')),
       );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      setState(() => _isLoading = false);
-      return;
-    }
+    if (user == null) return;
+
+    if (mounted) setState(() => _isLoading = true);
 
     try {
       await _authService.updateUserData(
@@ -103,20 +102,35 @@ class _EditProfilePageState extends State<EditProfilePage> {
             _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
       });
 
+      if (!mounted) return;
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profil berhasil diperbarui!')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Gagal memperbarui profil: ${e.toString().replaceFirst('Exception: ', '')}')),
+        SnackBar(content: Text('Gagal memperbarui profil: $e')),
       );
     } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _pickBirthday() async {
+    final pick = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime(2003),
+      firstDate: DateTime(1950),
+      lastDate: DateTime(2030),
+    );
+
+    if (pick != null && mounted) {
       setState(() {
-        _isLoading = false;
+        _selectedDate = pick;
+        _birthdayController.text =
+            "${pick.day}/${pick.month}/${pick.year}";
       });
     }
   }
@@ -130,7 +144,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
 
     return Scaffold(
-      bottomNavigationBar: _bottomNav(),
       body: Container(
         decoration: _bgGradient(),
         child: SafeArea(
@@ -155,6 +168,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(width: 48),
                   ],
                 ),
+
                 const SizedBox(height: 20),
 
                 Stack(
@@ -189,7 +203,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _gender,
+                        initialValue: _gender,
+
                         items: const [
                           DropdownMenuItem(value: "Male", child: Text("Male")),
                           DropdownMenuItem(
@@ -202,13 +217,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextFormField(
+                        controller: _birthdayController,
                         readOnly: true,
                         decoration: _inputDec("Birthday"),
-                        controller: TextEditingController(
-                          text: _selectedDate == null
-                              ? "Pilih Tanggal"
-                              : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
-                        ),
                         onTap: _pickBirthday,
                       ),
                     ),
@@ -218,7 +229,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 const SizedBox(height: 12),
                 _input("Phone number", _phoneController),
                 const SizedBox(height: 12),
-                _input("Email", _emailController),
+
+                TextField(
+                  controller: _emailController,
+                  readOnly: true,
+                  decoration: _inputDec("Email (tidak dapat diedit)"),
+                ),
+
                 const SizedBox(height: 12),
                 _input("User name", _usernameController),
 
@@ -235,8 +252,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ),
                       foregroundColor: Colors.white,
                     ),
-                    onPressed:
-                        _isLoading || _isProfileLoading ? null : _handleSave,
+                    onPressed: _isLoading ? null : _handleSave,
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
@@ -270,39 +286,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  _pickBirthday() async {
-    final pick = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime(2003),
-      firstDate: DateTime(1950),
-      lastDate: DateTime(2030),
-    );
-    if (pick != null) setState(() => _selectedDate = pick);
-  }
-
   BoxDecoration _bgGradient() {
     return const BoxDecoration(
       gradient: LinearGradient(
-        colors: [
-          Color(0xFFF8E6F4),
-          Color(0xFFE1C9F4),
-        ],
+        colors: [Color(0xFFF8E6F4), Color(0xFFE1C9F4)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-      ),
-    );
-  }
-
-  Widget _bottomNav() {
-    return Container(
-      height: 65,
-      decoration: const BoxDecoration(color: Colors.white),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: const [
-          Icon(Icons.home_outlined, size: 30),
-          Icon(Icons.person, size: 30),
-        ],
       ),
     );
   }
