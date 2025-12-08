@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:mood_tracker/page/forgot_password_page.dart';
+import 'package:mood_tracker/page/otp_verification_page.dart';
+import '../../services/reset_new_password_page.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
-import 'services/notification_service.dart';
-import 'page/choose_mood.dart'; 
 import 'firebase_options.dart';
 
 import 'page/dashboard/presentation/provider/dashboard_provider.dart';
+
 import 'page/dashboard/presentation/screens/dashboard_screen.dart';
 import 'page/dashboard/presentation/screens/detail_mood_screen.dart';
 
@@ -16,15 +16,7 @@ import 'page/welcome_page.dart';
 import 'page/profile_page.dart';
 import 'page/forgot_password_page.dart';
 import 'page/otp_verification_page.dart';
-import 'services/reset_new_password_page.dart';
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-void onSelectNotification(String? payload) {
-  if (payload == 'NAV_TO_CHOOSE_MOOD') {
-    navigatorKey.currentState?.pushNamed('/chooseMoodRoute'); 
-  }
-}
+import '../../services/reset_new_password_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,11 +26,6 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     
-    final notificationService = NotificationService();
-    await notificationService.initializeNotifications(onSelectNotification); 
-    
-    await notificationService.cancelAllNotifications(); 
-    await notificationService.scheduleDailyMoodCheckin(); 
     runApp(const MoodTrackerApp());
     
   } catch (e) {
@@ -57,13 +44,12 @@ class MoodTrackerApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
       ],
       child: MaterialApp(
-        navigatorKey: navigatorKey, 
         debugShowCheckedModeBanner: false,
         title: 'Mood Tracker',
         theme: ThemeData(
           fontFamily: 'Quicksand',
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF8C64D8),
+            seedColor: Color(0xFF8C64D8),
           ),
           useMaterial3: true,
         ),
@@ -77,11 +63,6 @@ class MoodTrackerApp extends StatelessWidget {
 
           "/dashboard": (_) => DashboardScreen(),
           "/detailMood": (_) => const DetailMoodScreen(),
-
-          "/chooseMoodRoute": (context) {
-            final userName = FirebaseAuth.instance.currentUser?.displayName ?? 'Pengguna';
-            return ChooseMoodPage(userName: userName);
-          },
 
           "/forgotPassword": (_) => const ForgotPasswordPage(),
           "/otpVerification": (_) => const OtpVerificationPage(),

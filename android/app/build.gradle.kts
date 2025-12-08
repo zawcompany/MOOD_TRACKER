@@ -24,8 +24,6 @@ android {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 
-    // Blok buildFeatures yang bermasalah telah dihapus atau dikosongkan
-
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.mood_tracker"

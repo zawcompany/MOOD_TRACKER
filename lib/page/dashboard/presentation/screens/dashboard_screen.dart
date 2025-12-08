@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../../services/mood_service.dart' as mood_service; 
-import '../../domain/mood_model.dart';
+import '../../../../services/mood_service.dart';
 import '../provider/dashboard_provider.dart';
 import '../widgets/weekly_mood_row.dart';
 import '../widgets/quote_card.dart';
@@ -12,21 +11,11 @@ import 'package:mood_tracker/page/choose_mood.dart';
 class DashboardScreen extends StatelessWidget {
   DashboardScreen({super.key});
 
-  final mood_service.MoodService _moodService = mood_service.MoodService(); 
+  final MoodService _moodService = MoodService();
 
   String _getUserName() {
     final user = FirebaseAuth.instance.currentUser;
     return user?.displayName ?? 'Pengguna';
-  }
-
-  MoodModel _mapEntryToModel(mood_service.MoodEntryModel entry) {
-    return MoodModel(
-      date: entry.timestamp,
-      mood: entry.moodLabel, 
-      emotions: const [],
-      note: entry.note, 
-      imagePath: entry.imagePath,
-    );
   }
 
   @override
@@ -61,7 +50,7 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-              StreamBuilder<List<mood_service.MoodEntryModel>>( 
+              StreamBuilder<List<MoodEntryModel>>(
                 stream: _moodService.getWeeklyMoodStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -74,27 +63,16 @@ class DashboardScreen extends StatelessWidget {
                     );
                   }
 
-                  final fetchedEntries = snapshot.data ?? [];
+                  final moods = snapshot.data ?? [];
 
-                  final List<MoodModel> mappedMoods = fetchedEntries
-                      .map((entry) => _mapEntryToModel(entry))
-                      .toList();
-
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mappedMoods.isNotEmpty) {
-                      provider.loadWeeklyMood(mappedMoods);
-                      provider.loadMonthlyMood(mappedMoods); 
-                    }
-                  });
-
-                  if (fetchedEntries.isEmpty) {
+                  if (moods.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 20),
                       child: Text('Belum ada entri mood dalam 7 hari terakhir.'),
                     );
                   }
 
-                  return WeeklyMoodRow(moods: fetchedEntries); 
+                  return WeeklyMoodRow(moods: moods);
                 },
               ),
 
