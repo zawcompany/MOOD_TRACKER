@@ -56,6 +56,9 @@ class _SignUpPageState extends State<SignUpPage> {
       await _authService.registerUser(email, password, name);
       
       final User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.updateProfile(displayName: name); 
+      }
       String userName = user?.displayName ?? name; 
 
       Navigator.of(context).pushReplacement(

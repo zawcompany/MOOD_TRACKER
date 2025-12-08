@@ -28,12 +28,14 @@ class WeeklyMoodRow extends StatelessWidget {
     final Map<DateTime, MoodEntryModel> moodMap = {};
 
     for (var m in moods) {
-      final dateKey = DateTime(m.timestamp.year, m.timestamp.month, m.timestamp.day);
+      final dateKey =
+          DateTime(m.timestamp.year, m.timestamp.month, m.timestamp.day);
       moodMap[dateKey] = m;
     }
 
     final List<DateTime> last7Days = List.generate(7, (i) {
-      return DateTime(now.year, now.month, now.day).subtract(Duration(days: 6 - i));
+      return DateTime(now.year, now.month, now.day)
+          .subtract(Duration(days: 6 - i));
     });
 
     return Row(
@@ -41,38 +43,43 @@ class WeeklyMoodRow extends StatelessWidget {
       children: List.generate(7, (i) {
         final date = last7Days[i];
         final mood = moodMap[date];
+
         final color = mood != null
             ? _colorFromHex(mood.moodColorHex)
             : Colors.grey.shade300;
-      
+
         String dayName;
         if (_isSameDay(date, now)) {
           dayName = "Today";
         } else if (_isSameDay(date, now.subtract(const Duration(days: 1)))) {
-          dayName = "Y'day"; 
+          dayName = "Y'day";
         } else {
           dayName = DateFormat('EEE').format(date);
         }
 
-        return Column(
-          children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: color,
-              backgroundImage:
-                  mood != null ? AssetImage(mood.imagePath) : null,
-              child: mood == null
-                  ? const Icon(Icons.remove, color: Colors.white70, size: 20)
-                  : null,
-            ),
-            const SizedBox(height: 4),
-            Text(
+        return Expanded(
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: color,
+                backgroundImage:
+                    mood != null ? AssetImage(mood.imagePath) : null,
+                child: mood == null
+                    ? const Icon(Icons.remove,
+                        color: Colors.white70, size: 20)
+                    : null,
+              ),
+              const SizedBox(height: 4),
+              Text(
                 dayName,
                 style: TextStyle(
-                    fontWeight: _isSameDay(date, now) ? FontWeight.bold : FontWeight.normal,
+                  fontWeight:
+                      _isSameDay(date, now) ? FontWeight.bold : FontWeight.normal,
                 ),
-            ),
-          ],
+              ),
+            ],
+          ),
         );
       }),
     );
