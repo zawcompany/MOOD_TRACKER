@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart'; // untuk kIsWeb (opsional, tapi boleh)
+// import 'package:image_picker/image_picker.dart'; <--- Dihapus
+// import 'dart:io'; <--- Dihapus
 
-
-import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
 import '../../services/auth_service.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -18,19 +16,20 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final AuthService _authService = AuthService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  // [BARU] Inisialisasi Firebase Storage
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-
+  
+  // [BARU] Controller untuk menampung input URL Foto
+  final TextEditingController _photoUrlController = TextEditingController(); 
+  
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _birthdayController = TextEditingController();
 
-  // [3] State baru untuk gambar dan ImagePicker
-  Uint8List? _imageBytes; // menyimpan bytes gambar untuk semua platform
-  final ImagePicker _picker = ImagePicker();
+  // [LAMA] State untuk gambar (Dihapus)
+  // File? _imageFile;
+  // final ImagePicker _picker = ImagePicker();
 
-  // [BARU] Variabel untuk menyimpan URL foto yang sudah ada
+  // [BARU] State untuk URL foto yang sudah ada
   String? _currentPhotoUrl;
 
   String _gender = "Male";
@@ -38,7 +37,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   bool _isLoading = false;
   bool _isProfileLoading = true;
 
-  // definisikan warna ungu untuk border
   final Color _purpleBorderColor = const Color.fromARGB(177, 142, 120, 179);
 
   @override
@@ -53,28 +51,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _phoneController.dispose();
     _emailController.dispose();
     _birthdayController.dispose();
+    _photoUrlController.dispose(); // [BARU] Dispose controller
     super.dispose();
   }
 
-  // fungsi untuk memilih gambar
-  Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(
-    source: ImageSource.gallery,
-    maxWidth: 1200,
-    maxHeight: 1200,
-    imageQuality: 85,
-  );
-
-  if (pickedFile != null) {
-    final bytes = await pickedFile.readAsBytes(); // ini works di web & mobile
-    if (mounted) {
-      setState(() {
-        _imageBytes = bytes;
-        // _imageFile dihapus, kita pakai _imageBytes
-      });
-    }
-  }
-}
+  // [FUNGSI PICK IMAGE DILENYAPKAN]
 
   Future<void> _loadUserProfile() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -85,8 +66,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
 
     _emailController.text = user.email ?? '';
-    // [MODIFIKASI] Ambil photoURL yang sudah ada dari Firebase Auth
+    // Ambil URL foto yang ada (dari Firebase Auth)
     _currentPhotoUrl = user.photoURL;
+    // [BARU] Isi controller URL dengan foto lama
+    _photoUrlController.text = user.photoURL ?? ''; 
 
     try {
       final doc = await _firestore.collection('users').doc(user.uid).get();
@@ -112,6 +95,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  // =========================================================================
+  // FUNGSI HANDLE SAVE (KUNCI KECEPATAN)
+  // =========================================================================
   Future<void> _handleSave() async {
     if (_usernameController.text.trim().isEmpty) {
       if (!mounted) return;
@@ -127,57 +113,42 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (mounted) setState(() => _isLoading = true);
 
     try {
-      String? photoUrl;
-      if (_imageBytes != null) {
-        final ref = _storage
-            .ref()
-            .child('user_photos')
-            .child('${user.uid}.jpg');
-
-        debugPrint("Uploading image bytes for user ${user.uid}");
-
-        await ref.putData(
-          _imageBytes!,
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
-
-        photoUrl = await ref.getDownloadURL();
-
-        debugPrint("Photo URL: $photoUrl");
-
-        await user.updatePhotoURL(photoUrl);
+      final String newPhotoUrl = _photoUrlController.text.trim();
+      
+      // 1. UPDATE PHOTO URL (Operasi cepat karena hanya string)
+      if (newPhotoUrl.isNotEmpty) {
+          await user.updatePhotoURL(newPhotoUrl); 
+      } else {
+          // Jika field dikosongkan
+          await user.updatePhotoURL(null); 
       }
-
-      // Update display name (Firebase Auth)
+      
+      // 2. Update display name (Firebase Auth)
       await _authService.updateUserData(
         name: _usernameController.text.trim(),
         email: _emailController.text.trim(),
       );
 
-      // Persiapkan data Firestore
+      // 3. Update data Firestore
       final Map<String, dynamic> firestoreUpdates = {
         'phone': _phoneController.text.trim(),
         'gender': _gender,
         'username': _usernameController.text.trim(),
         'birthday':
             _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
+        // [BARU] Simpan URL juga di Firestore
+        'photoUrl': newPhotoUrl, 
       };
-
-      if (photoUrl != null) {
-        firestoreUpdates['photoUrl'] = photoUrl;
-      }
 
       await _firestore.collection('users').doc(user.uid).update(firestoreUpdates);
 
-      await user.reload();
-
       if (!mounted) return;
-
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profil berhasil diperbarui!')),
       );
-
-      Navigator.pop(context);
+      Navigator.pop(context); 
+      
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -187,7 +158,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
 
   Future<void> _pickBirthday() async {
     final pick = await showDatePicker(
@@ -200,46 +170,38 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (pick != null && mounted) {
       setState(() {
         _selectedDate = pick;
-        _birthdayController.text = "${pick.day}/${pick.month}/${pick.year}";
+        _birthdayController.text =
+            "${pick.day}/${pick.month}/${pick.year}";
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isProfileLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    // [LOGIKA DIHAPUS]: Perlu perbarui _currentPhotoUrl di build untuk tampilan baru
+    if (_photoUrlController.text.trim().isNotEmpty) {
+        _currentPhotoUrl = _photoUrlController.text.trim();
+    } else if (_photoUrlController.text.trim().isEmpty) {
+        _currentPhotoUrl = null;
     }
-
-    // Tentukan ImageProvider berdasarkan prioritas:
-    // 1. Gambar baru yang dipilih (_imageFile)
-    // 2. Gambar yang sudah ada dari Firebase (_currentPhotoUrl)
-    // 3. Gambar default
-    ImageProvider getProfileImage() {
-      if (_imageBytes != null) {
-        return MemoryImage(_imageBytes!);
-      } else if (_currentPhotoUrl != null && _currentPhotoUrl!.isNotEmpty) {
-        return NetworkImage(_currentPhotoUrl!);
-      } else {
-        return const AssetImage("assets/images/profileMT.jpg");
-      }
+    
+    if (_isProfileLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     return Container(
       decoration: _bgGradient(),
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.transparent, 
         body: SafeArea(
           child: Column(
             children: [
-              // headernya (button back dan title)
+              // headernya
               Padding(
                 padding: const EdgeInsets.only(
-                  left: 20,
-                  right: 20,
-                  top: 20,
-                  bottom: 10,
-                ),
+                    left: 20, right: 20, top: 20, bottom: 10),
                 child: Row(
                   children: [
                     IconButton(
@@ -251,10 +213,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       child: Text(
                         "Edit Profile",
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style:
+                            TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                       ),
                     ),
                     const SizedBox(width: 48),
@@ -268,42 +228,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      // profile picture DIBUNGKUS DENGAN GESTUREDETECTOR
-                      GestureDetector(
-                        onTap: _pickImage,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            CircleAvatar(
-                              radius: 55,
-                              // [MODIFIKASI] Gunakan fungsi getProfileImage()
-                              backgroundImage:
-                                  getProfileImage(),
-                            ),
-                            Positioned(
-                              right: 6,
-                              bottom: 6,
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: const BoxDecoration(
-                                  color: Colors.black,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.edit,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      // [MODIFIKASI] Tampilan foto profil (read-only dari URL)
+                      CircleAvatar(
+                        radius: 55,
+                        backgroundImage: _currentPhotoUrl != null && _currentPhotoUrl!.isNotEmpty
+                            ? NetworkImage(_currentPhotoUrl!) as ImageProvider
+                            : const AssetImage("assets/images/profileMT.jpg"),
                       ),
+                      // [IKON EDIT DIHAPUS]
 
                       const SizedBox(height: 25),
 
-                      // input Fields
-                      _input("Username", _usernameController),
+                      // [BARU] Input field untuk URL Foto
+                      _input("Photo URL", _photoUrlController),
+                      const SizedBox(height: 12),
+                      
+                      // input Fields lainnya
+                      _input("Username", _usernameController), 
                       const SizedBox(height: 12),
 
                       Row(
@@ -312,14 +253,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             child: DropdownButtonFormField<String>(
                               initialValue: _gender,
                               items: const [
+                                DropdownMenuItem(value: "Male", child: Text("Male")),
                                 DropdownMenuItem(
-                                  value: "Male",
-                                  child: Text("Male"),
-                                ),
-                                DropdownMenuItem(
-                                  value: "Female",
-                                  child: Text("Female"),
-                                ),
+                                    value: "Female", child: Text("Female")),
                               ],
                               decoration: _inputDec("Gender"),
                               onChanged: (v) => setState(() => _gender = v!),
@@ -347,7 +283,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         decoration: _inputDec("Email (tidak dapat diedit)"),
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 10), 
                     ],
                   ),
                 ),
@@ -373,14 +309,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
+                                color: Colors.white, strokeWidth: 2),
                           )
-                        : const Text(
-                            "Save",
-                            style: TextStyle(color: Colors.white),
-                          ),
+                        : const Text("Save",
+                            style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ),
@@ -390,9 +322,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ),
     );
   }
-
+  
+  // ... (Widget _input, InputDecoration _inputDec, BoxDecoration _bgGradient tetap sama)
   Widget _input(String label, TextEditingController c) {
-    return TextField(controller: c, decoration: _inputDec(label));
+    return TextField(
+      controller: c,
+      decoration: _inputDec(label),
+    );
   }
 
   InputDecoration _inputDec(String label) {
@@ -401,18 +337,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
       labelStyle: const TextStyle(color: Colors.black54),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: _purpleBorderColor, width: 1.0),
+        borderSide: BorderSide(color: _purpleBorderColor, width: 1.0), 
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: _purpleBorderColor, width: 1.0),
+        borderSide: BorderSide(color: _purpleBorderColor, width: 1.0), 
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: _purpleBorderColor, width: 1.0),
+        borderSide: BorderSide(color: _purpleBorderColor, width: 1.0), 
       ),
       filled: true,
-      fillColor: const Color(0xFFF1E6F7),
+      fillColor: const Color(0xFFF1E6F7), 
     );
   }
 
