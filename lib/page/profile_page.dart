@@ -4,7 +4,6 @@ import '../../services/auth_service.dart';
 import '../page/edit_profile_page.dart';
 import '../page/change_password_page.dart';
 import '../page/logout_dialog.dart';
-// import 'package:mood_tracker/page/widgets/custom_navbar.dart';
 
 // [MODIFIKASI] Ubah menjadi StatefulWidget untuk mengelola refresh data
 class ProfilePage extends StatefulWidget {

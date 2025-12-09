@@ -19,7 +19,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: _bottomNav(),
       body: Container(
         decoration: _bgGradient(),
         child: SafeArea(
@@ -116,20 +115,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-      ),
-    );
-  }
-
-  Widget _bottomNav() {
-    return Container(
-      height: 65,
-      decoration: const BoxDecoration(color: Colors.white),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: const [
-          Icon(Icons.home_outlined, size: 30),
-          Icon(Icons.person, size: 30),
-        ],
       ),
     );
   }
