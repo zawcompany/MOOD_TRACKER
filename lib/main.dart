@@ -4,10 +4,11 @@ import 'package:mood_tracker/page/otp_verification_page.dart';
 import '../../services/reset_new_password_page.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+
+import 'services/notification_service.dart'; 
 import 'firebase_options.dart';
 
 import 'page/dashboard/presentation/provider/dashboard_provider.dart';
-
 import 'page/dashboard/presentation/screens/dashboard_screen.dart';
 import 'page/dashboard/presentation/screens/detail_mood_screen.dart';
 
@@ -23,6 +24,9 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     
+    // Memanggil Notifikasi Service
+    await NotificationService().initNotifications(); 
+
     runApp(const MoodTrackerApp());
     
   } catch (e) {
