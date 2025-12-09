@@ -58,7 +58,10 @@ class _ProfilePageState extends State<ProfilePage> {
               Text(
                 // Menampilkan "N/A" jika nilai kosong
                 value.isEmpty ? "N/A" : value,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -100,6 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileContent(BuildContext context, ProfileData data) {
+    debugPrint("Profile Page: Fetched Photo URL: ${data.photoUrl}");
     // [BARU] Tentukan gambar mana yang akan ditampilkan
     ImageProvider profileImage;
     if (data.photoUrl != null && data.photoUrl!.isNotEmpty) {
@@ -129,10 +133,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 20),
 
           // [MODIFIKASI] Gunakan profileImage yang sudah ditentukan
-          CircleAvatar(
-            radius: 55,
-            backgroundImage: profileImage,
-          ),
+          CircleAvatar(radius: 55, backgroundImage: profileImage),
 
           const SizedBox(height: 12),
 
@@ -190,16 +191,28 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 // Email
                 _buildProfileDetailRow(
-                    "Email", data.email, Icons.email_outlined),
+                  "Email",
+                  data.email,
+                  Icons.email_outlined,
+                ),
                 // Nomor Telepon
                 _buildProfileDetailRow(
-                    "Nomor Telepon", data.phone ?? 'N/A', Icons.phone_outlined),
+                  "Nomor Telepon",
+                  data.phone ?? 'N/A',
+                  Icons.phone_outlined,
+                ),
                 // Jenis Kelamin
                 _buildProfileDetailRow(
-                    "Jenis Kelamin", data.gender ?? 'N/A', Icons.person_outline),
+                  "Jenis Kelamin",
+                  data.gender ?? 'N/A',
+                  Icons.person_outline,
+                ),
                 // Tanggal Lahir
                 _buildProfileDetailRow(
-                    "Tanggal Lahir", _formatDate(data.birthday), Icons.calendar_today_outlined),
+                  "Tanggal Lahir",
+                  _formatDate(data.birthday),
+                  Icons.calendar_today_outlined,
+                ),
               ],
             ),
           ),
@@ -253,10 +266,7 @@ class _ProfilePageState extends State<ProfilePage> {
   BoxDecoration _bgGradient() {
     return const BoxDecoration(
       gradient: LinearGradient(
-        colors: [
-          Color(0xFFF8E6F4),
-          Color(0xFFE1C9F4),
-        ],
+        colors: [Color(0xFFF8E6F4), Color(0xFFE1C9F4)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),

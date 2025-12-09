@@ -112,7 +112,7 @@ class AuthService {
 
     // 2. Update Email (Firebase Auth) & Firestore Email
     if (email != null && email.isNotEmpty && email != user.email) {
-      await user.updateEmail(email);
+      await user.verifyBeforeUpdateEmail(email);
       firestoreUpdates['email'] = email;
     }
     

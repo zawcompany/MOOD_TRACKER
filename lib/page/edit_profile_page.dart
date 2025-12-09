@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io'; // [2] Import dart:io untuk File
+import 'package:flutter/foundation.dart'; // untuk kIsWeb (opsional, tapi boleh)
+
 
 import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
 import '../../services/auth_service.dart';
@@ -26,8 +27,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _birthdayController = TextEditingController();
 
   // [3] State baru untuk gambar dan ImagePicker
-  File? _imageFile;
+  Uint8List? _imageBytes; // menyimpan bytes gambar untuk semua platform
   final ImagePicker _picker = ImagePicker();
+
   // [BARU] Variabel untuk menyimpan URL foto yang sudah ada
   String? _currentPhotoUrl;
 
@@ -56,20 +58,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   // fungsi untuk memilih gambar
   Future<void> _pickImage() async {
-    // meminta izin memilih gambar dari galeri
     final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    source: ImageSource.gallery,
+    maxWidth: 1200,
+    maxHeight: 1200,
+    imageQuality: 85,
+  );
 
-    if (pickedFile != null) {
-      if (mounted) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-          // Logika untuk upload ke Firebase Storage akan ditambahkan di _handleSave()
-        });
-      }
+  if (pickedFile != null) {
+    final bytes = await pickedFile.readAsBytes(); // ini works di web & mobile
+    if (mounted) {
+      setState(() {
+        _imageBytes = bytes;
+        // _imageFile dihapus, kita pakai _imageBytes
+      });
     }
   }
+}
 
   Future<void> _loadUserProfile() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -123,49 +128,47 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       String? photoUrl;
-
-      // [LOGIKA BARU] Upload _imageFile ke Firebase Storage
-      if (_imageFile != null) {
+      if (_imageBytes != null) {
         final ref = _storage
             .ref()
-            .child('user_photos') // Folder di Firebase Storage
-            .child('${user.uid}.jpg'); // Nama file unik berdasarkan UID user
+            .child('user_photos')
+            .child('${user.uid}.jpg');
 
-        await ref.putFile(_imageFile!); // Upload file
-        photoUrl = await ref.getDownloadURL(); // Dapatkan URL publik
+        debugPrint("Uploading image bytes for user ${user.uid}");
 
-        // Perbarui photoURL di Firebase Auth
+        await ref.putData(
+          _imageBytes!,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+
+        photoUrl = await ref.getDownloadURL();
+
+        debugPrint("Photo URL: $photoUrl");
+
         await user.updatePhotoURL(photoUrl);
       }
 
-      // Memperbarui Display Name (di Firebase Auth) dan 'name' (di Firestore)
+      // Update display name (Firebase Auth)
       await _authService.updateUserData(
         name: _usernameController.text.trim(),
         email: _emailController.text.trim(),
       );
 
-      // Persiapan data untuk diupdate di Firestore
+      // Persiapkan data Firestore
       final Map<String, dynamic> firestoreUpdates = {
         'phone': _phoneController.text.trim(),
         'gender': _gender,
         'username': _usernameController.text.trim(),
-        'birthday': _selectedDate != null
-            ? Timestamp.fromDate(_selectedDate!)
-            : null,
+        'birthday':
+            _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
       };
 
-      // [BARU] Tambahkan photoUrl ke Firestore (untuk kemudahan akses data lain waktu)
       if (photoUrl != null) {
         firestoreUpdates['photoUrl'] = photoUrl;
       }
 
-      // Update data di Firestore
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .update(firestoreUpdates);
+      await _firestore.collection('users').doc(user.uid).update(firestoreUpdates);
 
-      // Pastikan data user di Firebase Auth di-reload agar photoURL yang baru terambil
       await user.reload();
 
       if (!mounted) return;
@@ -173,10 +176,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profil berhasil diperbarui!')),
       );
+
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      // Gunakan String() untuk memastikan e bisa ditampilkan sebagai teks
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal memperbarui profil: ${e.toString()}')),
       );
@@ -184,6 +187,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+
 
   Future<void> _pickBirthday() async {
     final pick = await showDatePicker(
@@ -212,8 +216,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     // 2. Gambar yang sudah ada dari Firebase (_currentPhotoUrl)
     // 3. Gambar default
     ImageProvider getProfileImage() {
-      if (_imageFile != null) {
-        return FileImage(_imageFile!);
+      if (_imageBytes != null) {
+        return MemoryImage(_imageBytes!);
       } else if (_currentPhotoUrl != null && _currentPhotoUrl!.isNotEmpty) {
         return NetworkImage(_currentPhotoUrl!);
       } else {
@@ -274,7 +278,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               radius: 55,
                               // [MODIFIKASI] Gunakan fungsi getProfileImage()
                               backgroundImage:
-                                  getProfileImage() as ImageProvider,
+                                  getProfileImage(),
                             ),
                             Positioned(
                               right: 6,
