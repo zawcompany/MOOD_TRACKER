@@ -6,8 +6,30 @@ import '../page/change_password_page.dart';
 import '../page/logout_dialog.dart';
 // import 'package:mood_tracker/page/widgets/custom_navbar.dart';
 
-class ProfilePage extends StatelessWidget {
+// [MODIFIKASI] Ubah menjadi StatefulWidget untuk mengelola refresh data
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  // Simpan Future-nya agar bisa di-refresh
+  late Future<ProfileData> _profileDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileDataFuture = AuthService().fetchProfileData();
+  }
+
+  // Fungsi untuk me-refresh data profil
+  void _refreshProfile() {
+    setState(() {
+      _profileDataFuture = AuthService().fetchProfileData();
+    });
+  }
 
   // Helper method untuk memformat tanggal
   String _formatDate(DateTime? date) {
@@ -52,7 +74,8 @@ class ProfilePage extends StatelessWidget {
         decoration: _bgGradient(),
         child: SafeArea(
           child: FutureBuilder<ProfileData>(
-            future: AuthService().fetchProfileData(),
+            // [MODIFIKASI] Gunakan future yang disimpan di state
+            future: _profileDataFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -77,6 +100,14 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildProfileContent(BuildContext context, ProfileData data) {
+    // [BARU] Tentukan gambar mana yang akan ditampilkan
+    ImageProvider profileImage;
+    if (data.photoUrl != null && data.photoUrl!.isNotEmpty) {
+      profileImage = NetworkImage(data.photoUrl!) as ImageProvider;
+    } else {
+      profileImage = const AssetImage("assets/images/profileMT.jpg");
+    }
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -97,9 +128,10 @@ class ProfilePage extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          const CircleAvatar(
+          // [MODIFIKASI] Gunakan profileImage yang sudah ditentukan
+          CircleAvatar(
             radius: 55,
-            backgroundImage: AssetImage("assets/images/profileMT.jpg"),
+            backgroundImage: profileImage,
           ),
 
           const SizedBox(height: 12),
@@ -117,11 +149,13 @@ class ProfilePage extends StatelessWidget {
           const SizedBox(height: 16),
 
           ElevatedButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              // [MODIFIKASI] Gunakan await dan panggil _refreshProfile()
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const EditProfilePage()),
               );
+              _refreshProfile(); // Refresh data setelah kembali dari halaman edit
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,

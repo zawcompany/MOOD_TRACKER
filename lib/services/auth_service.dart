@@ -8,6 +8,7 @@ class ProfileData {
   final String? gender;
   final DateTime? birthday;
   final String? username;
+  final String? photoUrl;
   
   ProfileData({
     required this.fullName, 
@@ -15,7 +16,8 @@ class ProfileData {
     this.phone, 
     this.gender, 
     this.birthday, 
-    this.username
+    this.username,
+    this.photoUrl
   });
 }
 class AuthService {
@@ -151,6 +153,7 @@ class AuthService {
       phone: data?['phone'],
       gender: data?['gender'],
       birthday: birthday,
+      photoUrl: user.photoURL,
     );
   }
 }
