@@ -34,6 +34,7 @@ class MoodEntryModel {
 class MoodService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  /// SAVE MOOD ENTRY
   Future<void> saveMoodEntry({
     required String moodLabel,
     required String note,
@@ -41,12 +42,9 @@ class MoodService {
     required String moodColorHex,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception("User is not logged in.");
-    }
+    if (user == null) throw Exception("User is not logged in.");
 
     try {
-      print("Saving mood entry for user: ${user.uid}");
       await _firestore.collection('mood_entries').add({
         'userId': user.uid,
         'moodLabel': moodLabel,
@@ -55,121 +53,80 @@ class MoodService {
         'moodColor': moodColorHex,
         'timestamp': Timestamp.now(),
       });
-      print("Mood entry saved successfully.");
     } catch (e) {
-      print("Error while saving mood entry: $e");
       throw Exception('Failed to save mood entry: $e');
     }
   }
 
+  /// 🔥 DELETE MOOD ENTRY
+  Future<void> deleteMood(String id) async {
+    try {
+      await _firestore.collection('mood_entries').doc(id).delete();
+    } catch (e) {
+      throw Exception("Failed to delete mood entry: $e");
+    }
+  }
+
+  /// WEEKLY STREAM
   Stream<List<MoodEntryModel>> getWeeklyMoodStream() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      print("getWeeklyMoodStream → User NOT logged in.");
-      return const Stream.empty();
-    }
+    if (user == null) return const Stream.empty();
 
     final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
-
-    print("getWeeklyMoodStream → RUN QUERY");
-    print("UserId → ${user.uid}");
-    print("Range → $sevenDaysAgo  →  Now");
 
     return _firestore
         .collection('mood_entries')
         .where('userId', isEqualTo: user.uid)
-        .where(
-          'timestamp',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(sevenDaysAgo),
-        )
+        .where('timestamp',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(sevenDaysAgo))
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-          print("WeeklyMoodStream → Docs Found: ${snapshot.docs.length}");
-
-          return snapshot.docs
-              .map((doc) {
-                print(
-                    "WeeklyMoodStream → Entry: ${doc['moodLabel']} at ${doc['timestamp']}");
-                return MoodEntryModel.fromFirestore(doc);
-              })
-              .toList();
-        });
+      return snapshot.docs.map((doc) => MoodEntryModel.fromFirestore(doc)).toList();
+    });
   }
 
+  /// DAILY STREAM
   Stream<List<MoodEntryModel>> getMoodsForDay(DateTime day) {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      print("getMoodsForDay → User NOT logged in.");
-      return const Stream.empty();
-    }
+    if (user == null) return const Stream.empty();
 
     final startOfDay = DateTime(day.year, day.month, day.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
-    print("getMoodsForDay → RUN QUERY");
-    print("UserId → ${user.uid}");
-    print("StartOfDay → $startOfDay");
-    print("EndOfDay →   $endOfDay");
-
     return _firestore
         .collection('mood_entries')
         .where('userId', isEqualTo: user.uid)
-        .where(
-          'timestamp',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
-        )
-        .where(
-          'timestamp',
-          isLessThan: Timestamp.fromDate(endOfDay),
-        )
+        .where('timestamp',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .where('timestamp',
+            isLessThan: Timestamp.fromDate(endOfDay))
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-          print("getMoodsForDay → Docs Found: ${snapshot.docs.length}");
-
-          return snapshot.docs
-              .map((doc) {
-                print(
-                    "DailyMoodStream → Entry: ${doc['moodLabel']} at ${doc['timestamp']}");
-                return MoodEntryModel.fromFirestore(doc);
-              })
-              .toList();
-        });
+      return snapshot.docs.map((doc) => MoodEntryModel.fromFirestore(doc)).toList();
+    });
   }
 
+  /// MONTHLY STREAM
   Stream<List<MoodEntryModel>> getMoodsForMonth(int year, int month) {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      print("getMoodsForMonth → User NOT logged in.");
-      return const Stream.empty();
-    }
+    if (user == null) return const Stream.empty();
 
-    // Tentukan batas waktu awal dan akhir bulan
     final startOfMonth = DateTime(year, month, 1);
     final endOfMonth = DateTime(year, month + 1, 1);
 
     return _firestore
         .collection('mood_entries')
         .where('userId', isEqualTo: user.uid)
-        .where(
-          'timestamp',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
-        )
-        .where(
-          'timestamp',
-          isLessThan: Timestamp.fromDate(endOfMonth),
-        )
+        .where('timestamp',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+        .where('timestamp',
+            isLessThan: Timestamp.fromDate(endOfMonth))
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-          print("getMoodsForMonth → Docs Found: ${snapshot.docs.length}");
-
-          return snapshot.docs
-              .map((doc) {
-                return MoodEntryModel.fromFirestore(doc);
-              })
-              .toList();
-        });
+      return snapshot.docs.map((doc) => MoodEntryModel.fromFirestore(doc)).toList();
+    });
   }
 }
