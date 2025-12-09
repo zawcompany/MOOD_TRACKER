@@ -103,11 +103,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildProfileContent(BuildContext context, ProfileData data) {
     debugPrint("Profile Page: Fetched Photo URL: ${data.photoUrl}");
-    // [BARU] Tentukan gambar mana yang akan ditampilkan
+    
+    // [PERBAIKAN KUNCI]: Tentukan gambar mana yang akan ditampilkan
     ImageProvider profileImage;
     if (data.photoUrl != null && data.photoUrl!.isNotEmpty) {
-      profileImage = NetworkImage(data.photoUrl!) as ImageProvider;
+      // Jika URL foto tersedia, gunakan NetworkImage
+      profileImage = NetworkImage(data.photoUrl!);
     } else {
+      // Jika tidak, gunakan gambar default
       profileImage = const AssetImage("assets/images/profileMT.jpg");
     }
 
@@ -162,7 +165,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
           const SizedBox(height: 30),
 
-          // --- Bagian Detail Profil BARU ---
+          // --- Bagian Detail Profil ---
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 25),
             padding: const EdgeInsets.all(20),
