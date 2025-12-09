@@ -75,8 +75,18 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
   String _monthName(int m) {
     const months = [
       "",
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     return months[m];
   }
@@ -143,8 +153,10 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
         final dailyEntries = snapshot.data ?? [];
 
         String combinedNotes = dailyEntries
-            .map((e) =>
-                "- ${e.moodLabel} (${DateFormat('HH:mm').format(e.timestamp)}):\n  ${e.note}\n")
+            .map(
+              (e) =>
+                  "- ${e.moodLabel} (${DateFormat('HH:mm').format(e.timestamp)}):\n  ${e.note}\n",
+            )
             .join('\n');
 
         return Container(

@@ -30,12 +30,23 @@ class WeeklyMoodRow extends StatelessWidget {
     for (var m in moods) {
       final dateKey =
           DateTime(m.timestamp.year, m.timestamp.month, m.timestamp.day);
-      moodMap[dateKey] = m;
+      if (moodMap.containsKey(dateKey)) {
+        final existingMood = moodMap[dateKey]!;
+        if (m.timestamp.isAfter(existingMood.timestamp)) {
+          moodMap[dateKey] = m;
+        }
+      } else {
+        moodMap[dateKey] = m;
+      }
     }
+    
+    // Logika untuk mengurutkan Mon-Sun (dari perubahan sebelumnya)
+    final int weekday = now.weekday;
+    final DateTime mondayOfCurrentWeek = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: weekday - 1));
 
     final List<DateTime> last7Days = List.generate(7, (i) {
-      return DateTime(now.year, now.month, now.day)
-          .subtract(Duration(days: 6 - i));
+      return mondayOfCurrentWeek.add(Duration(days: i));
     });
 
     return Row(
@@ -48,14 +59,7 @@ class WeeklyMoodRow extends StatelessWidget {
             ? _colorFromHex(mood.moodColorHex)
             : Colors.grey.shade300;
 
-        String dayName;
-        if (_isSameDay(date, now)) {
-          dayName = "Today";
-        } else if (_isSameDay(date, now.subtract(const Duration(days: 1)))) {
-          dayName = "Y'day";
-        } else {
-          dayName = DateFormat('EEE').format(date);
-        }
+        String dayName = DateFormat('EEE').format(date);
 
         return Expanded(
           child: Column(

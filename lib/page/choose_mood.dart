@@ -88,7 +88,8 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
                   activeTrackColor: mood["color"] as Color,
                   inactiveTrackColor: Colors.grey[300],
                   thumbColor: mood["color"] as Color,
-                  overlayColor: (mood["color"] as Color).withOpacity(0.2),
+                  overlayColor: (mood["color"] as Color).withValues(alpha: 0.2),
+
                 ),
                 child: Slider(
                   min: 0,

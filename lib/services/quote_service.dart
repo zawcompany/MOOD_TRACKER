@@ -18,6 +18,13 @@ class QuoteModel {
 
 class QuoteService {
   final String _apiUrl = 'https://api.quotable.io/random';
+  
+  // Kutipan default (fallback) jika API gagal
+  final QuoteModel _defaultQuote = QuoteModel(
+    content: "The future belongs to those who believe in the beauty of their dreams.",
+    author: "Eleanor Roosevelt",
+  );
+
   Future<QuoteModel> fetchRandomQuote({String moodType = 'positive'}) async {
     String tag;
     if (moodType == 'negative') {
@@ -34,10 +41,10 @@ class QuoteService {
         final jsonResponse = jsonDecode(response.body);
         return QuoteModel.fromJson(jsonResponse); 
       } else {
-        throw Exception('Failed to load quote. Status code: ${response.statusCode}');
+        return _defaultQuote; 
       }
     } catch (e) {
-      throw Exception('Failed to connect to Quote API.');
+      return _defaultQuote;
     }
   }
 }
