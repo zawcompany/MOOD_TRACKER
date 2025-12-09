@@ -2,6 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../services/mood_service.dart';
 
+Color hexToColor(String hexColor) {
+  final hexCode = hexColor.replaceAll('0x', '').replaceAll('#', '');
+  try {
+    // Menambahkan 'FF' di awal jika formatnya tanpa alpha (contoh: 8C64D8)
+    final cleanedHex = hexCode.length == 8 ? hexCode : 'FF$hexCode'; 
+    return Color(int.parse(cleanedHex, radix: 16));
+  } catch (e) {
+    return Colors.black; // Fallback ke warna hitam jika terjadi error
+  }
+}
+
 class DetailMoodScreen extends StatefulWidget {
   const DetailMoodScreen({super.key});
 
@@ -17,6 +28,13 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
   int get _selectedMonth => _focusedDay.month;
   int get _selectedYear => _focusedDay.year;
 
+  void _changeMonth(int newMonth) {
+    setState(() {
+      _focusedDay = DateTime(_focusedDay.year, newMonth, 1);
+      _selectedDay = DateTime(_focusedDay.year, newMonth, 1);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +45,31 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
           children: [
             _monthSelector(),
             const SizedBox(height: 12),
-            SizedBox(height: 260, child: _calendar()),
+            StreamBuilder<List<MoodEntryModel>>(
+              stream: _moodService.getMoodsForMonth(_selectedYear, _selectedMonth), // Panggil service baru
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox(
+                      height: 260,
+                      child: Center(child: CircularProgressIndicator()));
+                }
+                if (snapshot.hasError) {
+                  return SizedBox(
+                    height: 260,
+                    child: Center(
+                      child: Text('Error memuat mood: ${snapshot.error}'),
+                    ),
+                  );
+                }
+
+                final moodsForMonth = snapshot.data ?? [];
+                
+                return SizedBox(
+                  height: 260, 
+                  child: _calendar(moodsForMonth),
+                );
+              },
+            ),
             const SizedBox(height: 20),
             Expanded(child: _noteBox()),
           ],
@@ -42,13 +84,7 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
       children: [
         IconButton(
           onPressed: () {
-            setState(() {
-              _focusedDay = DateTime(
-                _focusedDay.year,
-                _focusedDay.month - 1,
-                _focusedDay.day,
-              );
-            });
+            _changeMonth(_focusedDay.month - 1);
           },
           icon: const Icon(Icons.chevron_left),
         ),
@@ -58,13 +94,7 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
         ),
         IconButton(
           onPressed: () {
-            setState(() {
-              _focusedDay = DateTime(
-                _focusedDay.year,
-                _focusedDay.month + 1,
-                _focusedDay.day,
-              );
-            });
+            _changeMonth(_focusedDay.month - 1);
           },
           icon: const Icon(Icons.chevron_right),
         ),
@@ -91,8 +121,16 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
     return months[m];
   }
 
-  Widget _calendar() {
+  Widget _calendar(List<MoodEntryModel> moodsForMonth) {
     final days = DateUtils.getDaysInMonth(_selectedYear, _selectedMonth);
+
+    final Map<int, MoodEntryModel> dailyMoodsMap = {};
+    for (var mood in moodsForMonth) {
+      final day = mood.timestamp.day;
+      if (!dailyMoodsMap.containsKey(day)) {
+        dailyMoodsMap[day] = mood;
+      }
+    }
 
     return GridView.builder(
       padding: EdgeInsets.zero,
@@ -105,10 +143,14 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
       itemBuilder: (context, i) {
         final date = DateTime(_selectedYear, _selectedMonth, i + 1);
         final isSelected =
-            date.day == _selectedDay.day && date.month == _selectedDay.month;
+            date.day == _selectedDay.day && 
+            date.month == _selectedDay.month &&
+            date.year == _selectedDay.year;
 
+        final dailyMoodEntry = dailyMoodsMap[date.day];
         final bool hasMood = false;
-        Color moodColor = Colors.grey.shade300;
+
+        Color moodColor = hasMood ? hexToColor(dailyMoodEntry!.moodColorHex) : Colors.grey.shade300;
 
         return GestureDetector(
           onTap: () {
@@ -116,7 +158,7 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: isSelected ? moodColor.withOpacity(0.5) : Colors.white,
+              color: isSelected ? moodColor.withOpacity(0.3) : (hasMood ? moodColor.withOpacity(0.1) : Colors.white),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: hasMood ? moodColor : Colors.grey.shade400,
@@ -170,8 +212,8 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
           child: SingleChildScrollView(
             child: Text(
               combinedNotes.isNotEmpty
-                  ? "Catatan Tanggal ${DateFormat('d MMM').format(_selectedDay)}:\n\n$combinedNotes"
-                  : "Tidak ada catatan mood pada tanggal ini.",
+                  ? "Notes for ${DateFormat('d MMM').format(_selectedDay)}:\n\n$combinedNotes"
+                  : "No mood notes for this date.",
               style: const TextStyle(fontSize: 16),
             ),
           ),

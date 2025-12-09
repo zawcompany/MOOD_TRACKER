@@ -137,4 +137,39 @@ class MoodService {
               .toList();
         });
   }
+
+  Stream<List<MoodEntryModel>> getMoodsForMonth(int year, int month) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      print("getMoodsForMonth → User NOT logged in.");
+      return const Stream.empty();
+    }
+
+    // Tentukan batas waktu awal dan akhir bulan
+    final startOfMonth = DateTime(year, month, 1);
+    final endOfMonth = DateTime(year, month + 1, 1);
+
+    return _firestore
+        .collection('mood_entries')
+        .where('userId', isEqualTo: user.uid)
+        .where(
+          'timestamp',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
+        )
+        .where(
+          'timestamp',
+          isLessThan: Timestamp.fromDate(endOfMonth),
+        )
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          print("getMoodsForMonth → Docs Found: ${snapshot.docs.length}");
+
+          return snapshot.docs
+              .map((doc) {
+                return MoodEntryModel.fromFirestore(doc);
+              })
+              .toList();
+        });
+  }
 }

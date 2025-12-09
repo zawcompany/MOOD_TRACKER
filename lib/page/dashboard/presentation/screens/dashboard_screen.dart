@@ -7,6 +7,8 @@ import '../../../../services/mood_service.dart';
 import '../widgets/weekly_mood_row.dart';
 import '../widgets/quote_card.dart';
 
+import 'detail_mood_screen.dart';
+
 class DashboardScreen extends StatelessWidget { 
   DashboardScreen({super.key});
 
@@ -117,7 +119,12 @@ class DashboardScreen extends StatelessWidget {
 
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, "/detailMoodScreen");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DetailMoodScreen(),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8C64D8),
