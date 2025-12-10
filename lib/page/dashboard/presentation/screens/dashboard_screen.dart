@@ -14,32 +14,20 @@ class DashboardScreen extends StatelessWidget {
 
   final MoodService _moodService = MoodService();
   final AuthService _authService = AuthService();
-  
-  // warna ungu pekat untuk tombol mood details
+
   final Color _purpleAccent = const Color(0xFF8C64D8);
-  
-  // warna ungu muda untuk border (lebih soft)
   final Color _lightPurpleBorder = const Color(0xFFB8AEE0);
 
-  // map untuk menghubungkan mood label dengan image asset path
   final Map<String, String> _moodImagePaths = const {
     "Bad": "assets/images/bad.png",
     "Fine": "assets/images/fine.png",
     "Wonderful": "assets/images/wonderful.png",
   };
 
-  // helper widget untuk membangun saran aktivitas harian
   Widget _buildSuggestedActivity(MoodEntryModel? latestMood, MoodService moodService) {
-    // tentukan mood label, default ke "Fine" jika belum ada data
     final String latestMoodLabel = latestMood?.moodLabel ?? "Fine";
-    
-    // mengambil saran secara acak dari service
     final randomSuggestion = moodService.getRandomPrescription(latestMoodLabel);
-    
-    // ambil path gambar monster
     final String imagePath = _moodImagePaths[latestMoodLabel] ?? "assets/images/fine.png";
-
-    // tentukan warna header berdasarkan mood terakhir atau default abu-abu
     final Color headerColor = latestMood != null 
         ? Color(int.parse(latestMood.moodColorHex.substring(2), radix: 16)) 
         : Colors.grey.shade700;
@@ -47,30 +35,26 @@ class DashboardScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
       child: Container(
-        // menambah padding vertikal (atas/bawah) menjadi 24
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24), 
         decoration: BoxDecoration(
-          color: Colors.white, // background putih untuk kontras
+          color: Colors.white, 
           borderRadius: BorderRadius.circular(12),
-          // menggunakan warna ungu muda untuk border stroke
           border: Border.all(color: _lightPurpleBorder, width: 2.0),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. HEADER DAN GAMBAR MONSTER
+            // 1. HEADER DAN GAMBAR ANIMASI
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween, 
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // kolom untuk teks (header dan mood info)
                 Expanded( 
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // header
                       Text(
-                        "Daily Mood Prescription:", // terjemahan baru
+                        "Daily Mood Prescription:", 
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -81,7 +65,7 @@ class DashboardScreen extends StatelessWidget {
                       
                       // mood info
                       Text(
-                        "you are feeling: ${latestMoodLabel}", // terjemahan baru
+                        "you are feeling: ${latestMoodLabel}",
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black54,
@@ -93,7 +77,6 @@ class DashboardScreen extends StatelessWidget {
                 
                 const SizedBox(width: 10), 
 
-                // gambar monster (kanan)
                 Image.asset(
                   imagePath,
                   height: 50, 
@@ -103,8 +86,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             
             const Divider(height: 20),
-            
-            // 2. saran teks
+
             Text(
               randomSuggestion,
               style: const TextStyle(
@@ -229,7 +211,6 @@ class DashboardScreen extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                // mood details button (atas)
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -253,7 +234,6 @@ class DashboardScreen extends StatelessWidget {
                   child: const Text("Mood Details"),
                 ),
 
-                // saran aktivitas (bawah)
                 const SizedBox(height: 30), 
                 
                 StreamBuilder<MoodEntryModel?>(

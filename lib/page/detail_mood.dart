@@ -122,144 +122,148 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            children: [
+        // PERBAIKAN: Bungkus konten dengan SingleChildScrollView
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              children: [
 
-              // header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // monster image
-              Image.asset(widget.imagePath, height: 120),
-
-              const SizedBox(height: 16),
-
-              const Text(
-                "what best describes\nthis mood?",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
+                // header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-              ),
 
-              const SizedBox(height: 6),
+                const SizedBox(height: 8),
 
-              const Text(
-                "select at least one emotion",
-                style: TextStyle(fontSize: 12, color: Colors.black54),
-              ),
+                // monster image
+                Image.asset(widget.imagePath, height: 120),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // emotion chips
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: emotionOptions.map((e) {
-                  final selected = _selectedEmotions.contains(e);
+                const Text(
+                  "what best describes\nthis mood?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
 
-                  return ChoiceChip(
-                    label: Text(
-                      e,
-                      style: TextStyle(
-                        color: selected ? Colors.white : Colors.black87,
-                        fontWeight:
-                            selected ? FontWeight.w600 : FontWeight.w500,
+                const SizedBox(height: 6),
+
+                const Text(
+                  "select at least one emotion",
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+
+                const SizedBox(height: 16),
+
+                // emotion chips
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: emotionOptions.map((e) {
+                    final selected = _selectedEmotions.contains(e);
+
+                    return ChoiceChip(
+                      label: Text(
+                        e,
+                        style: TextStyle(
+                          color: selected ? Colors.white : Colors.black87,
+                          fontWeight:
+                              selected ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                      ),
+                      selected: selected,
+                      onSelected: (val) => _toggleEmotionSelection(e, val),
+                      backgroundColor: Colors.white,
+                      selectedColor: widget.bgColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 20),
+
+                // note section
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "want to add a note?",
+                    style: TextStyle(fontSize: 14, color: Colors.grey[800]),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Container(
+                  height: 120,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextField(
+                    controller: _noteController,
+                    expands: true,
+                    maxLines: null,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: "write a few words if you want",
+                    ),
+                  ),
+                ),
+
+                // PERBAIKAN: Hapus const Spacer() dan ganti dengan SizedBox
+                const SizedBox(height: 24), 
+
+                // save button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _onSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    selected: selected,
-                    onSelected: (val) => _toggleEmotionSelection(e, val),
-                    backgroundColor: Colors.white,
-                    selectedColor: widget.bgColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  );
-                }).toList(),
-              ),
-
-              const SizedBox(height: 20),
-
-              // note section
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "want to add a note?",
-                  style: TextStyle(fontSize: 14, color: Colors.grey[800]),
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Container(
-                height: 120,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  controller: _noteController,
-                  expands: true,
-                  maxLines: null,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: "write a few words if you want",
+                    child: _isLoading
+                        ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                        : const Text(
+                              "Save",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
                   ),
                 ),
-              ),
-
-              const Spacer(),
-
-              // save button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _onSave,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                      : const Text(
-                            "Save",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
