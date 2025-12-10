@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'package:mood_tracker/services/notification_service.dart'; 
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 
 import 'page/dashboard/presentation/provider/dashboard_provider.dart';
@@ -18,13 +17,17 @@ import 'page/welcome_page.dart';
 import 'page/profile_page.dart';
 
 import 'dart:developer';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();  
+
   try {
+    // Inisialisasi Firebase
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+    // Inisialisasi NotificationService (FCM & Local Notifications)
     await NotificationService().initNotifications(); 
 
     runApp(const MoodTrackerApp());
@@ -50,7 +53,7 @@ class MoodTrackerApp extends StatelessWidget {
         theme: ThemeData(
           fontFamily: 'Quicksand',
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Color(0xFF8C64D8),
+            seedColor: const Color(0xFF8C64D8),
           ),
           useMaterial3: true,
         ),

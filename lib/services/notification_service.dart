@@ -1,6 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:developer'; 
 
 final _localNotifications = FlutterLocalNotificationsPlugin();
@@ -39,6 +41,21 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class NotificationService {
   final _firebaseMessaging = FirebaseMessaging.instance;
+
+  Future<void> saveTokenToFirestore(String token) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final tokensRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('fcmTokens');
+
+    await tokensRef.doc(token).set({
+      'token': token,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
   
   void handleNotificationTap(NotificationResponse notificationResponse) {
     final payload = notificationResponse.payload;
@@ -49,9 +66,11 @@ class NotificationService {
 
   Future<void> initNotifications() async {
     await _firebaseMessaging.requestPermission();
-    
+
+    // Register background handler
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
+    // Inisialisasi local notifications
     const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initializationSettingsIOS = DarwinInitializationSettings(); 
     
@@ -64,12 +83,14 @@ class NotificationService {
       onDidReceiveNotificationResponse: handleNotificationTap,
     );
 
+    // Buat channel Android
     final androidImplementation = _localNotifications.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>();
+        AndroidFlutterLocalNotificationsPlugin>();
     if (androidImplementation != null) {
       await androidImplementation.createNotificationChannel(_androidChannel);
     }
     
+    // Listener notifikasi foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final notification = message.notification;
       if (notification != null) {
@@ -90,10 +111,21 @@ class NotificationService {
       }
     });
 
+    // Cek jika app dibuka dari notifikasi terminated
     getInitialMessage();
 
+    // Ambil token awal
     final token = await _firebaseMessaging.getToken();
-    log('FCM Token: $token', name: 'FCM Token'); 
+    if (token != null) {
+      log('FCM Token awal: $token', name: 'FCM Token');
+      await saveTokenToFirestore(token);
+    }
+
+    // Listener token refresh
+    _firebaseMessaging.onTokenRefresh.listen((newToken) async {
+      log('FCM Token diperbarui: $newToken', name: 'FCM Token');
+      await saveTokenToFirestore(newToken);
+    });
   }
   
   Future<void> getInitialMessage() async {
