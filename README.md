@@ -1,4 +1,4 @@
-✦ Group 2 ✦ 
+✦ Group 2 ✦<br> 
 「 Zahra Amaliah Wildani (D121231100) - Nayla Apriliandita (D121231010) - Nabila Salsabila Akbar S. (D121231061) 」<br>
 
 # 🧠 Mood Tracker
