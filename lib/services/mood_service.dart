@@ -1,3 +1,4 @@
+import 'dart:math'; 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -33,8 +34,38 @@ class MoodEntryModel {
 
 class MoodService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Random _random = Random(); 
 
-  /// SAVE MOOD ENTRY
+  // daftar saran aktivitas berdasarkan kategori mood
+  final Map<String, List<String>> moodPrescriptions = {
+    "Bad": [
+      "try listening to your favorite music to distract your mind.", 
+      // saran lebih umum
+      "go for a walk around the nearest park or beach.", 
+      "take 10 minutes to do some light stretching."
+    ],
+    "Fine": [
+      "keep doing what you're doing! your mood is good today.",
+      "try calling and having a casual chat with your friend.",
+      // [FIX SINTAKS]: koma ditambahkan
+      "give yourself time to enjoy a delicious tea or Matcha!."
+    ],
+    "Wonderful": [
+      "use this energy to complete overdue tasks!",
+      "spread your positive energy to people around you.",
+      "try to remember the best thing that happened today and share it with others."
+    ],
+  };
+
+  /// mengambil saran secara acak berdasarkan mood
+  String getRandomPrescription(String moodLabel) {
+    final suggestions = moodPrescriptions[moodLabel] ?? ["coba istirahat sebentar."];
+    // pilih indeks acak
+    final int randomIndex = _random.nextInt(suggestions.length);
+    return suggestions[randomIndex];
+  }
+
+  /// menyimpan entri mood ke firestore
   Future<void> saveMoodEntry({
     required String moodLabel,
     required String note,
@@ -42,7 +73,7 @@ class MoodService {
     required String moodColorHex,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception("User is not logged in.");
+    if (user == null) throw Exception("user is not logged in.");
 
     try {
       await _firestore.collection('mood_entries').add({
@@ -54,20 +85,40 @@ class MoodService {
         'timestamp': Timestamp.now(),
       });
     } catch (e) {
-      throw Exception('Failed to save mood entry: $e');
+      throw Exception('failed to save mood entry: $e');
     }
   }
 
-  /// 🔥 DELETE MOOD ENTRY
+  /// menghapus entri mood
   Future<void> deleteMood(String id) async {
     try {
       await _firestore.collection('mood_entries').doc(id).delete();
     } catch (e) {
-      throw Exception("Failed to delete mood entry: $e");
+      throw Exception("failed to delete mood entry: $e");
     }
   }
 
-  /// WEEKLY STREAM
+  /// method mengambil mood terbaru (1 entry)
+  Stream<MoodEntryModel?> getLatestMoodEntry() {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return const Stream.empty();
+
+      // mengambil hanya 1 dokumen terbaru
+      return _firestore
+          .collection('mood_entries')
+          .where('userId', isEqualTo: user.uid)
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .snapshots()
+          .map((snapshot) {
+              if (snapshot.docs.isEmpty) {
+                  return null;
+              }
+              return MoodEntryModel.fromFirestore(snapshot.docs.first);
+          });
+  }
+
+  /// weekly stream: mengambil entri mood 7 hari terakhir
   Stream<List<MoodEntryModel>> getWeeklyMoodStream() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const Stream.empty();
@@ -86,7 +137,7 @@ class MoodService {
     });
   }
 
-  /// DAILY STREAM
+  /// daily stream: mengambil entri mood untuk hari tertentu
   Stream<List<MoodEntryModel>> getMoodsForDay(DateTime day) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const Stream.empty();
@@ -108,7 +159,7 @@ class MoodService {
     });
   }
 
-  /// MONTHLY STREAM
+  /// monthly stream: mengambil entri mood untuk bulan tertentu
   Stream<List<MoodEntryModel>> getMoodsForMonth(int year, int month) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const Stream.empty();
