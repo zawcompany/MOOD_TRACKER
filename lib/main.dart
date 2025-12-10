@@ -5,7 +5,8 @@ import '../../services/reset_new_password_page.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'services/notification_service.dart'; 
+import 'package:mood_tracker/services/notification_service.dart'; 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 
 import 'page/dashboard/presentation/provider/dashboard_provider.dart';
@@ -16,21 +17,20 @@ import 'page/sign_in_page.dart';
 import 'page/welcome_page.dart';
 import 'page/profile_page.dart';
 
+import 'dart:developer';
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
+  WidgetsFlutterBinding.ensureInitialized();  
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
-    // Memanggil Notifikasi Service
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     await NotificationService().initNotifications(); 
 
     runApp(const MoodTrackerApp());
     
   } catch (e) {
-    print("Error initializing Firebase: $e");
+    log("Error initializing Firebase: $e", name: 'Firebase Init');
     runApp(ErrorApp(errorMessage: e.toString()));
   }
 }
