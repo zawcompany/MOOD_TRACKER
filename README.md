@@ -1,5 +1,5 @@
 ✦ Group 2 ✦<br> 
-「 Zahra Amaliah Wildani (D121231100) - Nayla Apriliandita (D121231010) - Nabila Salsabila Akbar S. (D121231061) 」<br>
+「Zahra Amaliah Wildani (D121231100) - Nayla Apriliandita (D121231010) - Nabila Salsabila Akbar S. (D121231061)」<br>
 
 # 🧠 Mood Tracker
 The Mood Tracker application is a Flutter-based mobile platform developed to facilitate self-awareness and emotional regulation in productive age groups. This application systematically combines emotion logging with personalized activity recommendations.
