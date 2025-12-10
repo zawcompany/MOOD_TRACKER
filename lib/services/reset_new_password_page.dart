@@ -115,7 +115,7 @@ class _CreateNewPasswordPageState extends State<CreateNewPasswordPage> {
                     return;
                   }
 
-                  Navigator.pop(context); // kembali setelah sukses
+                  Navigator.pop(context); 
                 },
                 child: const Text(
                   "Reset password",

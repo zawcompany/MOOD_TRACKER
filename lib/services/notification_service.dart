@@ -1,50 +1,75 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core/firebase_core.dart'; 
+import 'dart:developer'; 
+
+final _localNotifications = FlutterLocalNotificationsPlugin();
+
+const _androidChannel = AndroidNotificationChannel(
+  'high_importance_channel', 
+  'Notifikasi Penting',
+  description: 'Channel ini digunakan untuk notifikasi penting.', 
+  importance: Importance.max,
+);
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('Handling a background message: ${message.messageId}');
+  await Firebase.initializeApp(); 
+  
+  log('Handling a background message: ${message.messageId}', name: 'FCM Background'); 
+
+  final notification = message.notification;
+  if (notification != null) {
+    _localNotifications.show(
+      notification.hashCode,
+      notification.title,
+      notification.body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _androidChannel.id,
+          _androidChannel.name,
+          channelDescription: _androidChannel.description,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+      payload: message.data['route'], 
+    );
+  }
 }
 
 class NotificationService {
   final _firebaseMessaging = FirebaseMessaging.instance;
-  final _localNotifications = FlutterLocalNotificationsPlugin();
-
-  final _androidChannel = const AndroidNotificationChannel(
-    'high_importance_channel',
-    'Notifikasi Penting',
-    description: 'Channel ini digunakan untuk notifikasi penting.',
-    importance: Importance.max,
-  );
+  
+  void handleNotificationTap(NotificationResponse notificationResponse) {
+    final payload = notificationResponse.payload;
+    if (payload != null) {
+      log('Notifikasi di-tap dengan payload: $payload', name: 'Notification Tap');
+    }
+  }
 
   Future<void> initNotifications() async {
-    // 1. Setup Izin Notifikasi
     await _firebaseMessaging.requestPermission();
-
-    // 2. Tentukan handler background
+    
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // 3. Setup Local Notification Plugin (untuk menampilkan notif saat app Foreground)
-    const initializationSettingsAndroid = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
+    const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initializationSettingsIOS = DarwinInitializationSettings(); 
+    
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS, 
     );
-    await _localNotifications.initialize(initializationSettings);
+    await _localNotifications.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: handleNotificationTap,
+    );
 
-    // 4. Buat Channel untuk Android
-    final androidImplementation = _localNotifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
+    final androidImplementation = _localNotifications.resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>();
     if (androidImplementation != null) {
       await androidImplementation.createNotificationChannel(_androidChannel);
     }
-
-    // 5. Handle Foreground Messages (Notifikasi Tampil Langsung)
+    
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final notification = message.notification;
       if (notification != null) {
@@ -60,12 +85,24 @@ class NotificationService {
               icon: '@mipmap/ic_launcher',
             ),
           ),
+          payload: message.data['route'], 
         );
       }
     });
 
-    // 6. Dapatkan Token FCM (PENTING: untuk mengirim notifikasi ke user spesifik)
+    getInitialMessage();
+
     final token = await _firebaseMessaging.getToken();
-    print('FCM Token: $token');
+    log('FCM Token: $token', name: 'FCM Token'); 
+  }
+  
+  Future<void> getInitialMessage() async {
+    final initialMessage = await _firebaseMessaging.getInitialMessage();
+    if (initialMessage != null) {
+      final payload = initialMessage.data['route'];
+      if (payload != null) {
+        log('App dibuka dari notifikasi terminated dengan payload: $payload', name: 'Initial Message');
+      }
+    }
   }
 }

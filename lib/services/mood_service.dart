@@ -36,18 +36,15 @@ class MoodService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Random _random = Random(); 
 
-  // daftar saran aktivitas berdasarkan kategori mood
   final Map<String, List<String>> moodPrescriptions = {
     "Bad": [
       "try listening to your favorite music to distract your mind.", 
-      // saran lebih umum
       "go for a walk around the nearest park or beach.", 
       "take 10 minutes to do some light stretching."
     ],
     "Fine": [
       "keep doing what you're doing! your mood is good today.",
       "try calling and having a casual chat with your friend.",
-      // [FIX SINTAKS]: koma ditambahkan
       "give yourself time to enjoy a delicious tea or Matcha!."
     ],
     "Wonderful": [
@@ -57,15 +54,12 @@ class MoodService {
     ],
   };
 
-  /// mengambil saran secara acak berdasarkan mood
   String getRandomPrescription(String moodLabel) {
     final suggestions = moodPrescriptions[moodLabel] ?? ["coba istirahat sebentar."];
-    // pilih indeks acak
     final int randomIndex = _random.nextInt(suggestions.length);
     return suggestions[randomIndex];
   }
 
-  /// menyimpan entri mood ke firestore
   Future<void> saveMoodEntry({
     required String moodLabel,
     required String note,
@@ -89,7 +83,6 @@ class MoodService {
     }
   }
 
-  /// menghapus entri mood
   Future<void> deleteMood(String id) async {
     try {
       await _firestore.collection('mood_entries').doc(id).delete();
@@ -98,12 +91,9 @@ class MoodService {
     }
   }
 
-  /// method mengambil mood terbaru (1 entry)
   Stream<MoodEntryModel?> getLatestMoodEntry() {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return const Stream.empty();
-
-      // mengambil hanya 1 dokumen terbaru
       return _firestore
           .collection('mood_entries')
           .where('userId', isEqualTo: user.uid)
@@ -118,7 +108,6 @@ class MoodService {
           });
   }
 
-  /// weekly stream: mengambil entri mood 7 hari terakhir
   Stream<List<MoodEntryModel>> getWeeklyMoodStream() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const Stream.empty();
@@ -137,7 +126,6 @@ class MoodService {
     });
   }
 
-  /// daily stream: mengambil entri mood untuk hari tertentu
   Stream<List<MoodEntryModel>> getMoodsForDay(DateTime day) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const Stream.empty();
@@ -159,7 +147,6 @@ class MoodService {
     });
   }
 
-  /// monthly stream: mengambil entri mood untuk bulan tertentu
   Stream<List<MoodEntryModel>> getMoodsForMonth(int year, int month) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const Stream.empty();

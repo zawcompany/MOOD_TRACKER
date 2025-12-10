@@ -1,3 +1,10 @@
+buildscript { 
+    dependencies {
+        // Classpath untuk Google Services/Firebase (KRITIS untuk Firebase)
+        classpath("com.google.gms:google-services:4.4.1") 
+    }
+}
+
 allprojects {
     repositories {
         google()

@@ -19,7 +19,6 @@ class QuoteModel {
 class QuoteService {
   final String _apiUrl = 'https://api.quotable.io/random';
   
-  // Kutipan default (fallback) jika API gagal
   final QuoteModel _defaultQuote = QuoteModel(
     content: "The future belongs to those who believe in the beauty of their dreams.",
     author: "Eleanor Roosevelt",

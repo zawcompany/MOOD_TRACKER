@@ -142,8 +142,6 @@ class AuthService {
     final data = doc.data();
 
     final birthday = (data?['birthday'] as Timestamp?)?.toDate();
-
-    // Ambil nama dari Firestore (yang disimpan saat register)
     final firestoreFullName = data?['name'] as String?;
 
     return ProfileData(
