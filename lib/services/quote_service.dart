@@ -17,7 +17,8 @@ class QuoteModel {
 }
 
 class QuoteService {
-  final String baseUrl = 'https://quoteslate.vercel.app/api/quotes/random?count=1';
+  // Quotable API stabil & gratis
+  final String baseUrl = 'https://api.quotable.io/random';
 
   Future<QuoteModel> fetchRandomQuote() async {
     try {
@@ -28,19 +29,16 @@ class QuoteService {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-
-        if (decoded is List && decoded.isNotEmpty) {
-          return QuoteModel.fromJson(decoded[0]);
-        }
+        // decoded sekarang langsung Map, bukan List
+        return QuoteModel.fromJson(decoded);
+      } else {
+        print("Failed to fetch quote. Status code: ${response.statusCode}");
       }
     } catch (e) {
       print("ERROR FETCHING QUOTE: $e");
     }
 
     // fallback kalau gagal
-    return QuoteModel(
-      content: "Keep going — stay strong!",
-      author: "Unknown",
-    );
+    return QuoteModel(content: "Keep going — stay strong!", author: "Unknown");
   }
 }
