@@ -207,7 +207,16 @@ class DashboardScreen extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
-                const QuoteCard(),
+                StreamBuilder<MoodEntryModel?>(
+                  stream: _moodService.getLatestMoodEntry(),
+                  builder: (context, snapshot) {
+                    final latestMood = snapshot.data;
+                    final moodType = latestMood?.moodLabel.toLowerCase() ?? 'fine';
+
+                    return QuoteCard(moodType: moodType);
+                  },
+                ),
+
 
                 const SizedBox(height: 30),
 

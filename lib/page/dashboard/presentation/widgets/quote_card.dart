@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../../../services/quote_service.dart'; 
+import '../../../../../services/quote_service.dart';
 
 class QuoteCard extends StatefulWidget {
   final String moodType;
 
-  const QuoteCard({super.key, this.moodType = 'positive'}); 
+  const QuoteCard({
+    super.key,
+    required this.moodType,
+  });
 
   @override
   State<QuoteCard> createState() => _QuoteCardState();
@@ -17,31 +20,36 @@ class _QuoteCardState extends State<QuoteCard> {
   @override
   void initState() {
     super.initState();
-    _quoteFuture = _quoteService.fetchRandomQuote(moodType: widget.moodType);
+    _quoteFuture = _quoteService.fetchRandomQuote();
   }
 
-  Widget _buildQuoteContent(String quote, String author, Color color) {
+  Widget _buildQuoteContent({
+    required String quote,
+    required String author,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Icon(Icons.format_quote_rounded, color: Colors.white, size: 28),
         const SizedBox(height: 10),
+
         Text(
           quote,
-          style: TextStyle(
-            color: color,
+          style: const TextStyle(
+            color: Colors.white,
             fontSize: 16,
             fontStyle: FontStyle.italic,
           ),
         ),
+
         const SizedBox(height: 10),
+
         Align(
           alignment: Alignment.centerRight,
           child: Text(
-            author,
+            "- $author",
             style: TextStyle(
-              color: color.withOpacity(0.7),
+              color: Colors.white.withOpacity(0.7),
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -53,56 +61,40 @@ class _QuoteCardState extends State<QuoteCard> {
 
   @override
   Widget build(BuildContext context) {
-        
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF8C64D8).withOpacity(0.9), 
+        color: const Color(0xFF8C64D8).withOpacity(0.9),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.purple.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
       ),
-      
       child: FutureBuilder<QuoteModel>(
         future: _quoteFuture,
         builder: (context, snapshot) {
-          // 1. Loading State
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
               ),
             );
           }
 
-          // 2. Error State 
           if (snapshot.hasError) {
             return _buildQuoteContent(
-              "Gagal memuat quote.",
-              "Error: Cek koneksi atau API",
-              Colors.white, 
+              quote: "Failed to load quote.",
+              author: "Unknown",
             );
           }
 
-          // 3. Data Loaded
           if (snapshot.hasData) {
-            final quote = snapshot.data!;
+            final q = snapshot.data!;
             return _buildQuoteContent(
-              quote.content,
-              '- ${quote.author}',
-              Colors.white,
+              quote: q.content,
+              author: q.author,
             );
           }
-          
-          return const SizedBox.shrink();
+
+          return const SizedBox();
         },
       ),
     );
