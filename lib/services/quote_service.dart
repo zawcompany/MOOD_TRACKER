@@ -1,4 +1,3 @@
-// quote_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -7,38 +6,39 @@ class QuoteModel {
   final String author;
 
   QuoteModel({required this.content, required this.author});
-
-  factory QuoteModel.fromJson(Map<String, dynamic> json) {
-    return QuoteModel(
-      content: json['content'] ?? 'No quote available',
-      author: json['author'] ?? 'Unknown',
-    );
-  }
 }
 
 class QuoteService {
-  // Quotable API stabil & gratis
-  final String baseUrl = 'https://api.quotable.io/random';
+  final String apiKey = 'hrzXppj52avRe/RhaCaDAg==QtCnrJOnLBoL3jzg';
+  final String baseUrl = 'https://api.api-ninjas.com/v1/quotes';
 
   Future<QuoteModel> fetchRandomQuote() async {
+    final url = Uri.parse(baseUrl);
+
     try {
-      final response = await http.get(Uri.parse(baseUrl));
+      final response = await http.get(
+        url,
+        headers: {'X-Api-Key': apiKey},
+      );
 
-      print("STATUS: ${response.statusCode}");
-      print("BODY: ${response.body}");
+      print('STATUS CODE: ${response.statusCode}');
+      print('BODY: ${response.body}');
 
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-        // decoded sekarang langsung Map, bukan List
-        return QuoteModel.fromJson(decoded);
-      } else {
-        print("Failed to fetch quote. Status code: ${response.statusCode}");
+      if (response.statusCode == 200 && response.body.isNotEmpty) {
+        final jsonData = jsonDecode(response.body)[0];
+
+        return QuoteModel(
+          content: jsonData['quote'] ?? 'Quote not available',
+          author: jsonData['author'] ?? 'Unknown Author',
+        );
       }
     } catch (e) {
-      print("ERROR FETCHING QUOTE: $e");
+      print('ERROR: $e');
     }
 
-    // fallback kalau gagal
-    return QuoteModel(content: "Keep going — stay strong!", author: "Unknown");
+    return QuoteModel(
+      content: 'Stay strong. Better days are coming.',
+      author: 'Unknown',
+    );
   }
 }

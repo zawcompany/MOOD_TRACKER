@@ -21,7 +21,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _birthdayController = TextEditingController();
 
-  // state untuk tampilan
   String? _currentPhotoUrl;
   String _gender = "Male";
   DateTime? _selectedDate;
@@ -58,6 +57,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _emailController.text = user.email ?? '';
     // mengambil photo url dari firebase auth
     _currentPhotoUrl = user.photoURL;
+    
     // mengisi controller url dengan foto lama
     _photoUrlController.text = user.photoURL ?? ''; 
 
@@ -85,9 +85,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-
-  /// menangani proses penyimpanan (update) profil.
-  /// operasi ini tidak melakukan upload file, hanya menyimpan string url.
+  /// tidak melakukan upload file, hanya menyimpan string url.
   Future<void> _handleSave() async {
     if (_usernameController.text.trim().isEmpty) {
       if (!mounted) return;
@@ -105,21 +103,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     try {
       final String newPhotoUrl = _photoUrlController.text.trim();
       
-      // 1. update photo url di firebase auth (cepat)
       if (newPhotoUrl.isNotEmpty) {
           await user.updatePhotoURL(newPhotoUrl); 
       } else {
           // jika field dikosongkan, url dihapus
           await user.updatePhotoURL(null); 
       }
-      
-      // 2. update display name (firebase auth)
       await _authService.updateUserData(
         name: _usernameController.text.trim(),
         email: _emailController.text.trim(),
       );
 
-      // 3. update data firestore
       final Map<String, dynamic> firestoreUpdates = {
         'phone': _phoneController.text.trim(),
         'gender': _gender,
@@ -150,7 +144,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  /// menampilkan date picker untuk memilih tanggal lahir.
   Future<void> _pickBirthday() async {
     final pick = await showDatePicker(
       context: context,
@@ -171,7 +164,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     
-    // memperbarui currentPhotoUrl secara real-time dari input field untuk preview
     if (_photoUrlController.text.trim().isNotEmpty) {
         _currentPhotoUrl = _photoUrlController.text.trim();
     } else if (_photoUrlController.text.trim().isEmpty) {
@@ -191,6 +183,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         body: SafeArea(
           child: Column(
             children: [
+
               // header
               Padding(
                 padding: const EdgeInsets.only(
@@ -222,7 +215,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   child: Column(
                     children: [
 
-                      // tampilan foto profil (read-only dari url)
+                      // tampilan foto profil 
                       CircleAvatar(
                         radius: 55,
                         backgroundImage: _currentPhotoUrl != null && _currentPhotoUrl!.isNotEmpty

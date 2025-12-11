@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mood_tracker/page/forgot_password_page.dart';
-import 'package:mood_tracker/page/otp_verification_page.dart';
+// import 'package:mood_tracker/page/otp_verification_page.dart';
 import '../../services/reset_new_password_page.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -69,7 +69,7 @@ class MoodTrackerApp extends StatelessWidget {
           "/detailMood": (_) => const DetailMoodScreen(),
 
           "/forgotPassword": (_) => const ForgotPasswordPage(),
-          "/otpVerification": (_) => const OtpVerificationPage(),
+          // "/otpVerification": (_) => const OtpVerificationPage(),
           "/resetPassword": (_) => const CreateNewPasswordPage(),
         },
       ),

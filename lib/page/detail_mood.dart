@@ -32,10 +32,8 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
   };
 
   Color? backgroundColor;
-  
-  // metode untuk menghasilkan warna background yang sangat pucat
+
   Color paleBackground(Color base) {
-    // menggunakan Color.lerp untuk mencampur warna dasar dengan putih (8% warna mood)
     return Color.lerp(Colors.white, base, 0.08)!;
   }
 
@@ -51,18 +49,15 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
     super.dispose();
   }
 
-  // mengelola pemilihan chip emosi dan menyesuaikan warna background
   void _toggleEmotionSelection(String emotion, bool selected) {
     if (!mounted) return;
     setState(() {
       if (selected) {
         _selectedEmotions.add(emotion);
 
-        // sedikit lebih cerah saat emosi dipilih
         backgroundColor = Color.lerp(Colors.white, widget.bgColor, 0.15)!;
       } else {
         _selectedEmotions.remove(emotion);
-        // kembali ke warna paling pucat jika tidak ada yang dipilih
         backgroundColor = paleBackground(widget.bgColor);
       }
     });
@@ -84,7 +79,6 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
     final note = _noteController.text.trim();
     
-    // mendapatkan nilai hex dari warna (menggunakan .value)
     final moodColorHex = '0x${widget.bgColor.value.toRadixString(16).toUpperCase()}';
     
     final emotionsString = _selectedEmotions.join(', ');
@@ -94,7 +88,6 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
         moodLabel: widget.label,
         imagePath: widget.imagePath,
         moodColorHex: moodColorHex,
-        // menggunakan variabel note dan emotionsString yang sudah di-trim
         note: "$note [Emotions: $emotionsString]",
       );
 
@@ -122,7 +115,7 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
-        // PERBAIKAN: Bungkus konten dengan SingleChildScrollView
+    
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -146,7 +139,6 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
                 const SizedBox(height: 8),
 
-                // monster image
                 Image.asset(widget.imagePath, height: 120),
 
                 const SizedBox(height: 16),
@@ -170,7 +162,6 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
 
                 const SizedBox(height: 16),
 
-                // emotion chips
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
@@ -228,7 +219,6 @@ class _DetailMoodPageState extends State<DetailMoodPage> {
                   ),
                 ),
 
-                // PERBAIKAN: Hapus const Spacer() dan ganti dengan SizedBox
                 const SizedBox(height: 24), 
 
                 // save button

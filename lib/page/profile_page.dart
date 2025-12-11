@@ -5,7 +5,7 @@ import '../page/edit_profile_page.dart';
 import '../page/change_password_page.dart';
 import '../page/logout_dialog.dart';
 
-// Ubah menjadi StatefulWidget untuk mengelola refresh data
+// ubah menjadi StatefulWidget untuk mengelola refresh data
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -14,7 +14,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Simpan Future-nya agar bisa di-refresh
   late Future<ProfileData> _profileDataFuture;
 
   @override
@@ -23,21 +22,18 @@ class _ProfilePageState extends State<ProfilePage> {
     _profileDataFuture = AuthService().fetchProfileData();
   }
 
-  // Fungsi untuk me-refresh data profil
   void _refreshProfile() {
     setState(() {
       _profileDataFuture = AuthService().fetchProfileData();
     });
   }
 
-  // Helper method untuk memformat tanggal
   String _formatDate(DateTime? date) {
     if (date == null) return 'N/A';
-    // Format tanggal ke DD/MM/YYYY
+
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
-  // Helper method untuk membangun satu baris detail profil
   Widget _buildProfileDetailRow(String label, String value, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),

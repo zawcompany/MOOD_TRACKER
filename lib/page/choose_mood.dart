@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import 'package:mood_tracker/page/dashboard/presentation/provider/dashboard_provider.dart';
-
 import 'detail_mood.dart';
 
 class ChooseMoodPage extends StatefulWidget {
@@ -36,7 +32,6 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
         "image": "assets/images/wonderful.png",
       },
     ];
-
     final mood = moods[sliderValue.round()];
 
     return Scaffold(
@@ -49,7 +44,10 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
             children: [
               Align(
                 alignment: Alignment.topRight,
-                child: Icon(Icons.close, size: 28, color: Colors.grey[700]),
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Icon(Icons.close, size: 28, color: Colors.grey[700]),
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -88,8 +86,8 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
                   activeTrackColor: mood["color"] as Color,
                   inactiveTrackColor: Colors.grey[300],
                   thumbColor: mood["color"] as Color,
-                  overlayColor: (mood["color"] as Color).withValues(alpha: 0.2),
-
+                  
+                  overlayColor: (mood["color"] as Color).withOpacity(0.2), 
                 ),
                 child: Slider(
                   min: 0,
@@ -117,8 +115,10 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
+                    final currentContext = context; 
+                    
                     final result = await Navigator.push(
-                      context,
+                      currentContext,
                       MaterialPageRoute(
                         builder: (context) => DetailMoodPage(
                           label: mood['label'] as String,
@@ -127,13 +127,13 @@ class _ChooseMoodPageState extends State<ChooseMoodPage> {
                         ),
                       ),
                     );
-                    if (result != null) {
-                      final provider =
-                          Provider.of<DashboardProvider>(context, listen: false);
 
-                      provider.setMood(result);
-
-                      Navigator.pushNamed(context, "/dashboard");
+                    if (!currentContext.mounted) return;
+                    
+                    if (result == true) { 
+                      
+                      Navigator.pushNamedAndRemoveUntil(
+                          currentContext, "/dashboard", (route) => false);
                     }
                   },
                   style: ElevatedButton.styleFrom(

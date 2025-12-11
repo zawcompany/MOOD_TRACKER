@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
-import '../../domain/mood_model.dart';
+import '../../../../services/mood_service.dart'; 
 
 class DashboardProvider extends ChangeNotifier {
-  List<MoodModel> weeklyMood = [];
-  List<MoodModel> monthlyMood = [];
+  List<MoodEntryModel> weeklyMood = [];
+  List<MoodEntryModel> monthlyMood = [];
 
   DateTime selectedDate = DateTime.now();
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
 
-  void loadWeeklyMood(List<MoodModel> moods) {
+  // data mood mingguan 
+  void loadWeeklyMood(List<MoodEntryModel> moods) {
     weeklyMood = moods;
     notifyListeners();
   }
 
-  void loadMonthlyMood(List<MoodModel> moods) {
+  // data mood bulanan 
+  void loadMonthlyMood(List<MoodEntryModel> moods) {
     monthlyMood = moods;
     notifyListeners();
   }
@@ -34,37 +36,17 @@ class DashboardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  MoodModel? getNoteForSelectedDate() {
+  // catatan mood untuk tanggal yang sedang dipilih
+  MoodEntryModel? getNoteForSelectedDate() {
     try {
       return monthlyMood.firstWhere(
         (m) =>
-            m.date.day == selectedDate.day &&
-            m.date.month == selectedMonth &&
-            m.date.year == selectedYear,
+            m.timestamp.day == selectedDate.day &&
+            m.timestamp.month == selectedMonth &&
+            m.timestamp.year == selectedYear,
       );
     } catch (e) {
       return null;
     }
-  }
-
-  /// --- BAGIAN BARU UNTUK SIMPAN MOOD HARI INI ---  
-  String? lastMood;
-  List<String>? lastEmotions;
-  String? lastNote;
-  String? lastImage;
-
-  void setMood(Map<String, dynamic> data) {
-    final mood = MoodModel(
-      date: DateTime.now(),
-      mood: data["mood"],
-      emotions: List<String>.from(data["emotions"]),
-      note: data["note"],
-      imagePath: data["image"],
-    );
-
-    weeklyMood.add(mood);
-    monthlyMood.add(mood);
-
-    notifyListeners();
   }
 }

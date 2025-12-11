@@ -24,7 +24,7 @@ class AuthService {
   FirebaseAuth get _auth => FirebaseAuth.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
-  // 1. Register User
+  // Register User
   Future<void> registerUser(String email, String password, String name) async {
     try {
       UserCredential userCredential =
@@ -60,7 +60,7 @@ class AuthService {
     }
   }
 
-  // 2. Login User
+  // Login User
   Future<void> signInUser(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(
@@ -82,12 +82,12 @@ class AuthService {
     }
   }
 
-  // 3. Logout
+  // Logout
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // 4. Update Data User
+  // Update Data User
   Future<void> updateUserData({
     String? name,
     String? email,
@@ -104,19 +104,19 @@ class AuthService {
 
     final Map<String, dynamic> firestoreUpdates = {};
 
-    // 1. Update Display Name (Firebase Auth) & Firestore Name
+    // Update Display Name (Firebase Auth) & Firestore Name
     if (name != null && name.isNotEmpty) {
       await user.updateDisplayName(name);
       firestoreUpdates['name'] = name;
     }
 
-    // 2. Update Email (Firebase Auth) & Firestore Email
+    // Update Email (Firebase Auth) & Firestore Email
     if (email != null && email.isNotEmpty && email != user.email) {
       await user.verifyBeforeUpdateEmail(email);
       firestoreUpdates['email'] = email;
     }
     
-    // 3. Update Field Baru (Firestore)
+    // Update Field Baru (Firestore)
     if (phone != null) firestoreUpdates['phone'] = phone;
     if (gender != null) firestoreUpdates['gender'] = gender;
     if (username != null) firestoreUpdates['username'] = username;
@@ -133,7 +133,7 @@ class AuthService {
     await user.reload();
   }
 
-  // 5. Fetch Profile Data
+  // Fetch Profile Data
   Future<ProfileData> fetchProfileData() async {
     final user = _auth.currentUser;
     if (user == null) throw Exception("User not logged in.");

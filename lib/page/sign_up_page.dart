@@ -17,7 +17,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   
-  final AuthService _authService = AuthService(); // Inisiasi Service
+  final AuthService _authService = AuthService(); 
   bool _isLoading = false;
 
   @override

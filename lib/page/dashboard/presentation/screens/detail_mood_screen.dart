@@ -75,8 +75,7 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
     );
   }
 
-  // ================= MONTH SELECTOR =================
-
+  // MONTH SELECTOR 
   Widget _monthSelector() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -116,8 +115,7 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
     return months[m];
   }
 
-  // ================= CALENDAR =================
-
+  // CALENDAR
   Widget _calendar(List<MoodEntryModel> moodsForMonth) {
     final days = DateUtils.getDaysInMonth(_selectedYear, _selectedMonth);
 
@@ -178,8 +176,7 @@ class _DetailMoodScreenState extends State<DetailMoodScreen> {
     );
   }
 
-  // ================= NOTES =================
-
+  // NOTES 
   Widget _noteBox() {
     return StreamBuilder<List<MoodEntryModel>>(
       stream: _moodService.getMoodsForDay(_selectedDay),

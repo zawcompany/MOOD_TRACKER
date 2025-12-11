@@ -44,7 +44,7 @@ class DashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. HEADER DAN GAMBAR ANIMASI
+            // 1. HEADER DAN GAMBAR 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween, 
               crossAxisAlignment: CrossAxisAlignment.start,

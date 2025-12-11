@@ -40,7 +40,7 @@ class WeeklyMoodRow extends StatelessWidget {
       }
     }
     
-    // Logika untuk mengurutkan Mon-Sun (dari perubahan sebelumnya)
+    // mengurutkan Mon-Sun 
     final int weekday = now.weekday;
     final DateTime mondayOfCurrentWeek = DateTime(now.year, now.month, now.day)
         .subtract(Duration(days: weekday - 1));
