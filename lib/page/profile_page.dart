@@ -5,7 +5,7 @@ import '../page/edit_profile_page.dart';
 import '../page/change_password_page.dart';
 import '../page/logout_dialog.dart';
 
-// [MODIFIKASI] Ubah menjadi StatefulWidget untuk mengelola refresh data
+// Ubah menjadi StatefulWidget untuk mengelola refresh data
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -46,23 +46,25 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Icon(icon, color: Colors.black54, size: 24),
           const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                // Menampilkan "N/A" jika nilai kosong
-                value.isEmpty ? "N/A" : value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  value.isEmpty ? "N/A" : value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -76,7 +78,6 @@ class _ProfilePageState extends State<ProfilePage> {
         decoration: _bgGradient(),
         child: SafeArea(
           child: FutureBuilder<ProfileData>(
-            // [MODIFIKASI] Gunakan future yang disimpan di state
             future: _profileDataFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -92,7 +93,6 @@ class _ProfilePageState extends State<ProfilePage> {
               }
 
               final data = snapshot.data!;
-
               return _buildProfileContent(context, data);
             },
           ),
@@ -103,54 +103,41 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildProfileContent(BuildContext context, ProfileData data) {
     debugPrint("Profile Page: Fetched Photo URL: ${data.photoUrl}");
-    
-    // [PERBAIKAN KUNCI]: Tentukan gambar mana yang akan ditampilkan
+
     ImageProvider profileImage;
     if (data.photoUrl != null && data.photoUrl!.isNotEmpty) {
-      // Jika URL foto tersedia, gunakan NetworkImage
       profileImage = NetworkImage(data.photoUrl!);
     } else {
-      // Jika tidak, gunakan gambar default
       profileImage = const AssetImage("assets/images/profileMT.jpg");
     }
 
     return SingleChildScrollView(
       child: Column(
         children: [
-
           const SizedBox(height: 10),
           const Text(
             "Profile",
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
           ),
-
           const SizedBox(height: 20),
-
-          // [MODIFIKASI] Gunakan profileImage yang sudah ditentukan
           CircleAvatar(radius: 55, backgroundImage: profileImage),
-
           const SizedBox(height: 12),
-
           Text(
             data.fullName,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-
           Text(
             data.username ?? 'No Username',
             style: const TextStyle(fontSize: 14, color: Colors.black54),
           ),
-
           const SizedBox(height: 16),
-
           ElevatedButton(
             onPressed: () async {
-              // [MODIFIKASI] Gunakan await dan panggil _refreshProfile()
               await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const EditProfilePage()),
               );
-              _refreshProfile(); // Refresh data setelah kembali dari halaman edit
+              _refreshProfile();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
@@ -162,10 +149,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: const Text("Edit Profile"),
           ),
-
           const SizedBox(height: 30),
-
-          // --- Bagian Detail Profil ---
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 25),
             padding: const EdgeInsets.all(20),
@@ -183,25 +167,21 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: Column(
               children: [
-                // Email
                 _buildProfileDetailRow(
                   "Email",
                   data.email,
                   Icons.email_outlined,
                 ),
-                // Nomor Telepon
                 _buildProfileDetailRow(
                   "Nomor Telepon",
                   data.phone ?? 'N/A',
                   Icons.phone_outlined,
                 ),
-                // Jenis Kelamin
                 _buildProfileDetailRow(
                   "Jenis Kelamin",
                   data.gender ?? 'N/A',
                   Icons.person_outline,
                 ),
-                // Tanggal Lahir
                 _buildProfileDetailRow(
                   "Tanggal Lahir",
                   _formatDate(data.birthday),
@@ -210,11 +190,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
           ),
-
           const SizedBox(height: 30),
-          // ---------------------------------
-
-          // Bagian Action Buttons yang sudah ada
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 25),
             padding: const EdgeInsets.all(16),
@@ -237,7 +213,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
                 const Divider(height: 1),
-
                 ListTile(
                   leading: const Icon(Icons.logout),
                   title: const Text("Log Out"),
